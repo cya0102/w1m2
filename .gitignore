@@ -1,5 +1,6 @@
 checkpoints/
 __pycache__/
+CPL_baseline-main/eventBoundary/outputs/
 
 *.pt
 *.pth

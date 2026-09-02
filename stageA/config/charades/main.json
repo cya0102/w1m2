@@ -1,0 +1,74 @@
+{
+  "dataset": {
+    "dataset": "CharadesSTA",
+    "feature_path": "/data/chenyuan/videogrounding/VGDataset/Charades-STA/i3dfeatures/i3d_features.hdf5",
+    "vocab_size": 1111,
+    "word_dim": 300,
+    "frame_dim": 1024,
+    "max_num_words": 20,
+    "max_num_frames": 200,
+    "target_stride": 1,
+    "train_data": "data/charades/train.json",
+    "test_data": "data/charades/test.json",
+    "val_data": "data/charades/test.json",
+    "vocab_path": "data/charades/glove.pkl"
+  },
+  "train": {
+    "optimizer": {
+      "lr": 4e-4,
+      "weight_decay": 0,
+      "warmup_updates": 400,
+      "warmup_init_lr": 1e-7
+    },
+    "batch_size": 32,
+    "max_num_epochs": 30,
+    "model_saved_path": "checkpoints/charades/"
+  },
+  "model": {
+    "name": "CPL",
+    "config": {
+      "frames_input_size": 1024,
+      "words_input_size": 300,
+      "hidden_size": 256,
+      "use_negative": true,
+      "num_props": 8,
+      "sigma": 9,
+      "gamma": 0.5,
+      "dropout": 0.1,
+      "event_disentanglement": {
+        "enabled": true,
+        "rank": 8,
+        "cpca_alpha": 1.0,
+        "covariance_ema": 0.95,
+        "normalize_covariance": true,
+        "selection_temperature": 0.1,
+        "warmup_epochs": 5,
+        "ramp_epochs": 5,
+        "score_separation_weight": 0.5,
+        "inference_event_weight": 0.1,
+        "inference_vote_event_weight": 0.5
+      },
+      "DualTransformer": {
+        "d_model": 256,
+        "num_heads": 4,
+        "num_decoder_layers1": 3,
+        "num_decoder_layers2": 3,
+        "dropout": 0.1
+      }
+    }
+  },
+  "loss": {
+    "margin_1": 0.1,
+    "margin_2": 0.15,
+    "lambda": 0.146,
+    "alpha_1": 1,
+    "alpha_2": 5,
+    "event_alpha": 0.1,
+    "event_margin": 0.2,
+    "event_text_weight": 1.0,
+    "event_min_context": 0.15,
+    "event_context_weight": 2.0,
+    "event_max_overlap": 0.7,
+    "event_overlap_weight": 1.0
+  }
+}
