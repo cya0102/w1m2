@@ -104,7 +104,11 @@ class BaseDataset(Dataset):
             'words_feat': words_feat,
             'words_id': words_id,
             'weights': weights,
-            'raw': [vid, duration, timestamps, sentence]
+            # Keep the historical raw[0:4] contract and append a stable id for
+            # deterministic evaluation masks.  The id is independent of
+            # Python's process-randomized hash implementation.
+            'raw': [vid, duration, timestamps, sentence,
+                    '{}:{}'.format(vid, index)]
         }
         if self.event_boundary_index is not None:
             boundary_positions, boundary_scores = self.event_boundary_index.get(vid)

@@ -1,0 +1,54 @@
+usage: train.py [-h] --config-path CONFIG_PATH
+                [--resume RESUME | --init-from-v3 INIT_FROM_V3] [--eval]
+                [--log_dir LOG_DIR] [--tag TAG] [--vote]
+                [--selection-strategy {nll,geometric_vote,semantic_vote}]
+                [--selection-temperature SELECTION_TEMPERATURE] [--seed SEED]
+                [--alpha-1 ALPHA_1] [--alpha-2 ALPHA_2]
+                [--event-alpha EVENT_ALPHA]
+                [--event-sep-weight EVENT_SEP_WEIGHT]
+                [--event-text-weight EVENT_TEXT_WEIGHT]
+                [--event-context-weight EVENT_CONTEXT_WEIGHT]
+                [--event-overlap-weight EVENT_OVERLAP_WEIGHT]
+                [--mixture-pull-weight MIXTURE_PULL_WEIGHT]
+                [--mixture-intra-push-weight MIXTURE_INTRA_PUSH_WEIGHT]
+                [--mixture-inter-push-weight MIXTURE_INTER_PUSH_WEIGHT]
+                [--select-on-val] [--legacy-select-on-test]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config-path CONFIG_PATH
+                        config file path
+  --resume RESUME       resume a structurally identical V4 checkpoint
+  --init-from-v3 INIT_FROM_V3
+                        initialize compatible weights from a V3 checkpoint
+  --eval                only evaluate
+  --log_dir LOG_DIR     log file save path
+  --tag TAG             experiment tag
+  --vote                use semantic weighted voting during inference
+  --selection-strategy {nll,geometric_vote,semantic_vote}
+                        proposal selector; overrides the backward-compatible
+                        --vote flag
+  --selection-temperature SELECTION_TEMPERATURE
+                        softmax temperature for semantic weighted voting
+  --seed SEED           random seed
+  --alpha-1 ALPHA_1     override CPL intra-video ranking weight
+  --alpha-2 ALPHA_2     override CPL Gaussian diversity weight
+  --event-alpha EVENT_ALPHA
+                        override the total BECL weight
+  --event-sep-weight EVENT_SEP_WEIGHT
+                        override low-rank event/background separation weight
+  --event-text-weight EVENT_TEXT_WEIGHT
+                        override Event/text alignment weight
+  --event-context-weight EVENT_CONTEXT_WEIGHT
+                        override minimum-context boundary weight
+  --event-overlap-weight EVENT_OVERLAP_WEIGHT
+                        override interval-overlap weight
+  --mixture-pull-weight MIXTURE_PULL_WEIGHT
+                        override within-mixture pulling weight
+  --mixture-intra-push-weight MIXTURE_INTRA_PUSH_WEIGHT
+                        override within-mixture pushing weight
+  --mixture-inter-push-weight MIXTURE_INTER_PUSH_WEIGHT
+                        override between-mixture pushing weight
+  --select-on-val       select checkpoints on validation (stage01 default)
+  --legacy-select-on-test
+                        legacy diagnostic only: select checkpoints on test

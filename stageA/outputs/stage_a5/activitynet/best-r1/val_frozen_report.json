@@ -1,0 +1,175 @@
+{
+  "STAGE_B_GO": false,
+  "baseline_metrics": {
+    "R@1,IoU@0.1": 0.7538988860325622,
+    "R@1,IoU@0.3": 0.5036275349900029,
+    "R@1,IoU@0.5": 0.30328477577834906,
+    "R@1,IoU@0.7": 0.14344473007712083,
+    "R@1,IoU@0.9": 0.032904884318766064,
+    "R@1,mIoU": 0.35085782967712137,
+    "R@5,IoU@0.1": 0.8699228791773779,
+    "R@5,IoU@0.3": 0.652042273636104,
+    "R@5,IoU@0.5": 0.4712939160239931,
+    "R@5,IoU@0.7": 0.32116538131962297,
+    "R@5,IoU@0.9": 0.10134247357897744,
+    "R@5,mIoU": 0.4863099762167935
+  },
+  "changed_fraction": 0.007734932876321051,
+  "checkpoint_path": "/data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-best-r1.pt",
+  "checkpoint_sha256": "7e3d111c442f8835e07c38658ab181300d0ab0a68e8392c8c194da0550ac1cc1",
+  "config_sha256": "806ce061eaa5e95e11112a5da61cd81e66b9baec0e9a6f02c73e3a8beba35c8b",
+  "dataset": "activitynet",
+  "delta_metrics": {
+    "R@1,IoU@0.5": -0.0001713796058269157,
+    "R@1,mIoU": -0.00014740542522356792,
+    "R@5,IoU@0.5": 0.00011425307055129563,
+    "R@5,mIoU": 2.7278921774731568e-05
+  },
+  "diagnostic_only": false,
+  "gt_width_buckets": {
+    "long": {
+      "baseline_R1_mIoU": 0.6354289340671545,
+      "baseline_R5_mIoU": 0.8773001704946558,
+      "count": 2727,
+      "delta_R1_mIoU": 6.545632277357644e-05,
+      "delta_R5_mIoU": -7.313821838687983e-05,
+      "stage_a5_R1_mIoU": 0.6354943903899282,
+      "stage_a5_R5_mIoU": 0.8772270322762687
+    },
+    "medium_long": {
+      "baseline_R1_mIoU": 0.5463184599405732,
+      "baseline_R5_mIoU": 0.7231943191001916,
+      "count": 3747,
+      "delta_R1_mIoU": -0.0005298277695773374,
+      "delta_R5_mIoU": 0.0001295608126880949,
+      "stage_a5_R1_mIoU": 0.5457886321709958,
+      "stage_a5_R5_mIoU": 0.7233238799128797
+    },
+    "medium_short": {
+      "baseline_R1_mIoU": 0.3451173270090794,
+      "baseline_R5_mIoU": 0.48754136012063026,
+      "count": 5020,
+      "delta_R1_mIoU": -6.127330894543101e-05,
+      "delta_R5_mIoU": 3.664099466049747e-05,
+      "stage_a5_R1_mIoU": 0.345056053700134,
+      "stage_a5_R5_mIoU": 0.4875780011152907
+    },
+    "short": {
+      "baseline_R1_mIoU": 0.10470925874463038,
+      "baseline_R5_mIoU": 0.16023820117485646,
+      "count": 6011,
+      "delta_R1_mIoU": -7.752032893528204e-05,
+      "delta_R5_mIoU": 1.2582413689681807e-06,
+      "stage_a5_R1_mIoU": 0.10463173841569509,
+      "stage_a5_R5_mIoU": 0.16023945941622544
+    }
+  },
+  "harmful_fraction": 0.0013024850042844902,
+  "helpful_fraction": 0.0021708083404741504,
+  "mask_seeds": [
+    8,
+    18,
+    28
+  ],
+  "mean_width_after": 0.6588121652603149,
+  "mean_width_before": 0.6590643525123596,
+  "neutral_fraction": 0.004261639531562411,
+  "protocol_metadata": {
+    "checkpoint_label": "activitynet_best-r1",
+    "checkpoint_path": "/data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-best-r1.pt",
+    "checkpoint_sha256": "7e3d111c442f8835e07c38658ab181300d0ab0a68e8392c8c194da0550ac1cc1",
+    "config_sha256": "806ce061eaa5e95e11112a5da61cd81e66b9baec0e9a6f02c73e3a8beba35c8b",
+    "dataset": "activitynet",
+    "mask_seeds": [
+      8,
+      18,
+      28
+    ],
+    "partial": false,
+    "query_count": 17505,
+    "schema_version": 1,
+    "split": "val",
+    "test_data": "data/activitynet/test_data.json",
+    "train_data": "data/activitynet/train_data.json",
+    "val_data": "data/activitynet/val_data.json",
+    "validation_is_test": false
+  },
+  "query_count": 17505,
+  "reason_distribution": {
+    "high_mask_uncertainty": 0.05574407312196515,
+    "insufficient_by_nll": 0.3319851471008283,
+    "invalid_geometry": 0.015104255926878035,
+    "parent_not_long": 0.44939160239931447,
+    "retained_ratio_too_small": 0.00276492430734076,
+    "score_margin_not_met": 0.0001942302199371608,
+    "shift_too_large": 0.0737617823479006,
+    "trim_selected": 0.007734932876321051,
+    "weak_boundary": 0.0071979434447300775,
+    "weak_shell_contrast": 0.05612110825478435
+  },
+  "selected_candidate_distribution": {
+    "both_near": 0.0,
+    "both_strong": 0.0,
+    "left_near": 0.003233361896600971,
+    "left_strong": 0.0009711510996858041,
+    "original": 0.9922650671236789,
+    "right_near": 0.0027192230791202514,
+    "right_strong": 0.0008111968009140246
+  },
+  "split": "val",
+  "stage_a5_metrics": {
+    "R@1,IoU@0.1": 0.7537846329620108,
+    "R@1,IoU@0.3": 0.504084547272208,
+    "R@1,IoU@0.5": 0.30311339617252214,
+    "R@1,IoU@0.7": 0.1429305912596401,
+    "R@1,IoU@0.9": 0.0327906312482148,
+    "R@1,mIoU": 0.3507104242518978,
+    "R@5,IoU@0.1": 0.8699228791773779,
+    "R@5,IoU@0.3": 0.6520994001713796,
+    "R@5,IoU@0.5": 0.4714081690945444,
+    "R@5,IoU@0.7": 0.3213367609254499,
+    "R@5,IoU@0.9": 0.10134247357897744,
+    "R@5,mIoU": 0.48633725513856824
+  },
+  "stage_b_gate_note": "This report used the validation-frozen configuration; no test parameter scan was performed.",
+  "trim_precision": 0.625,
+  "video_cluster_bootstrap": {
+    "R@1,IoU@0.5": {
+      "baseline": 0.30328477577834906,
+      "ci95": [
+        -0.0008015596062323854,
+        0.0004548342502070451
+      ],
+      "delta": -0.0001713796058269157,
+      "stage_a5": 0.30311339617252214
+    },
+    "R@1,mIoU": {
+      "baseline": 0.35085782967712137,
+      "ci95": [
+        -0.00040155747296819757,
+        0.00011487119151170614
+      ],
+      "delta": -0.00014740542522356792,
+      "stage_a5": 0.3507104242518978
+    },
+    "R@5,IoU@0.5": {
+      "baseline": 0.4712939160239931,
+      "ci95": [
+        0.0,
+        0.0002863360439812057
+      ],
+      "delta": 0.00011425307055129563,
+      "stage_a5": 0.4714081690945444
+    },
+    "R@5,mIoU": {
+      "baseline": 0.4863099762167935,
+      "ci95": [
+        -3.0071262524647423e-06,
+        5.784959032776038e-05
+      ],
+      "delta": 2.7278921774731568e-05,
+      "stage_a5": 0.48633725513856824
+    }
+  },
+  "video_count": 4917
+}

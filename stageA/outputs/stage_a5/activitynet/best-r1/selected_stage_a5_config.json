@@ -1,0 +1,84 @@
+{
+  "STAGE_B_GO": false,
+  "config": {
+    "accept_margin": 0.02,
+    "allowed_candidate_types": [
+      "left_near",
+      "left_strong",
+      "right_near",
+      "right_strong"
+    ],
+    "enabled": true,
+    "lambda_boundary": 0.0,
+    "lambda_contrast": 0.5,
+    "lambda_edit": 0.5,
+    "lambda_uncertainty": 1.0,
+    "max_contrast_std": 0.01,
+    "max_nll_increase": 0.0,
+    "max_relative_shift": 0.1,
+    "min_boundary_percentile": 0.85,
+    "min_contrast_margin": 0.05,
+    "min_parent_width": 0.65,
+    "min_retained_ratio": 0.6,
+    "selector": "counterfactual_gated"
+  },
+  "diagnostic_only": false,
+  "num_gate_passing_configs": 0,
+  "num_scanned_configs": 1962,
+  "protocol_metadata": {
+    "checkpoint_label": "activitynet_best-r1",
+    "checkpoint_path": "/data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-best-r1.pt",
+    "checkpoint_sha256": "7e3d111c442f8835e07c38658ab181300d0ab0a68e8392c8c194da0550ac1cc1",
+    "config_sha256": "806ce061eaa5e95e11112a5da61cd81e66b9baec0e9a6f02c73e3a8beba35c8b",
+    "dataset": "activitynet",
+    "mask_seeds": [
+      8,
+      18,
+      28
+    ],
+    "partial": false,
+    "query_count": 17505,
+    "schema_version": 1,
+    "split": "val",
+    "test_data": "data/activitynet/test_data.json",
+    "train_data": "data/activitynet/train_data.json",
+    "val_data": "data/activitynet/val_data.json",
+    "validation_is_test": false
+  },
+  "selection_protocol": "validation-only hierarchical Stage-A.5 scan",
+  "selection_reason": "no_gate_passing_config_best_objective_with_gate_false",
+  "validation_summary": {
+    "baseline_R1_IoU@0.5": 0.30328477577834906,
+    "baseline_R1_mIoU": 0.35085782967712137,
+    "baseline_R5_mIoU": 0.4863099762167935,
+    "bucket_drops": {
+      "long": {
+        "R1_mIoU": 6.545632277366042e-05,
+        "R5_mIoU": -7.31382183870588e-05
+      },
+      "medium_long": {
+        "R1_mIoU": -0.000529827769577329,
+        "R5_mIoU": 0.00012956081268811204
+      },
+      "medium_short": {
+        "R1_mIoU": -6.127330894539762e-05,
+        "R5_mIoU": 3.6640994660441795e-05
+      },
+      "short": {
+        "R1_mIoU": -7.752032893529326e-05,
+        "R5_mIoU": 1.2582413689843364e-06
+      }
+    },
+    "changed_fraction": 0.007734932876321051,
+    "harmful_fraction": 0.0013024850042844902,
+    "helpful_fraction": 0.0021708083404741504,
+    "long_R5_penalty": 7.31382183870588e-05,
+    "objective": -0.0028975639942056992,
+    "phase": "weights",
+    "stage_R1_IoU@0.5": 0.30311339617252214,
+    "stage_R1_mIoU": 0.3507104242518978,
+    "stage_R5_mIoU": 0.48633725513856824,
+    "stage_b_go": false,
+    "trim_precision": 0.625
+  }
+}

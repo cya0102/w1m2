@@ -1,0 +1,74 @@
+{
+  "dataset": {
+    "dataset": "ActivityNet",
+    "feature_path": "/data/chenyuan/videogrounding/VGDataset/ActivityNet/c3dfeat_hdf5/sub_activitynet_v1-3.c3d.hdf5",
+    "vocab_size": 8000,
+    "word_dim": 300,
+    "frame_dim": 500,
+    "max_num_words": 20,
+    "max_num_frames": 200,
+    "target_stride": 1,
+    "train_data": "data/activitynet/train_data.json",
+    "test_data": "data/activitynet/test_data.json",
+    "val_data": "data/activitynet/val_data.json",
+    "vocab_path": "data/activitynet/glove.pkl",
+    "event_boundary_path": "data/event_boundaries/activitynet_c3d_stage_a.npz",
+    "event_boundary_strict": true
+  },
+  "train": {
+    "optimizer": {"lr": 4e-4, "weight_decay": 0, "warmup_updates": 400, "warmup_init_lr": 1e-7},
+    "batch_size": 32,
+    "max_num_epochs": 30,
+    "model_saved_path": "checkpoints/activitynet/"
+  },
+  "model": {
+    "name": "CPL",
+    "config": {
+      "frames_input_size": 500,
+      "words_input_size": 300,
+      "hidden_size": 256,
+      "use_negative": true,
+      "num_props": 5,
+      "sigma": 9,
+      "gamma": 0,
+      "dropout": 0.1,
+      "proposal_generator": {"type": "gaussian_mixture", "max_components": 5, "component_sigma": 4.0, "importance_temperature": 1.0, "boundary_mode": "outer", "boundary_shrink": 0.0},
+      "event_disentanglement": {"enabled": true, "rank": 8, "cpca_alpha": 1.0, "covariance_ema": 0.95, "normalize_covariance": true, "selection_temperature": 0.1, "warmup_epochs": 5, "ramp_epochs": 5, "score_separation_weight": 0.5, "inference_event_weight": 0.0, "inference_vote_event_weight": 0.0},
+      "event_boundary_refinement": {
+        "enabled": true,
+        "num_clips": 200,
+        "candidate_policy": "near_and_strong",
+        "min_boundary_margin_clips": 1,
+        "min_candidate_width": 0.02,
+        "min_retained_ratio": 0.25,
+        "soft_window_temperature": 0.01,
+        "decode_chunk_size": 64,
+        "max_nll_increase": 0.02,
+        "epsilon_scan": [0.0, 0.01, 0.02, 0.05],
+        "report_only": true,
+        "stage_a5": {
+          "enabled": true,
+          "eval_mask_seeds": [8, 18, 28],
+          "export_candidates": true,
+          "score_shell": true,
+          "selector": "counterfactual_gated",
+          "allowed_candidate_types": ["left_near", "left_strong", "right_near", "right_strong"],
+          "min_parent_width": 0.50,
+          "min_retained_ratio": 0.75,
+          "max_relative_shift": 0.20,
+          "max_nll_increase": 0.00,
+          "min_contrast_margin": 0.02,
+          "max_contrast_std": 0.03,
+          "min_boundary_percentile": 0.70,
+          "lambda_contrast": 1.0,
+          "lambda_edit": 0.25,
+          "lambda_uncertainty": 0.5,
+          "lambda_boundary": 0.1,
+          "accept_margin": 0.01
+        }
+      },
+      "DualTransformer": {"d_model": 256, "num_heads": 4, "num_decoder_layers1": 3, "num_decoder_layers2": 3, "dropout": 0.1}
+    }
+  },
+  "loss": {"margin_1": 0.1, "margin_2": 0.15, "lambda": 0.125, "alpha_1": 2.0, "alpha_2": 0.0, "event_alpha": 0.1, "event_margin": 0.2, "event_sep_weight": 1.0, "event_text_weight": 1.0, "event_min_context": 0.15, "event_context_weight": 2.0, "event_max_overlap": 0.7, "event_overlap_weight": 1.0, "mixture_pull_weight": 0.05, "mixture_intra_push_weight": 0.05, "mixture_inter_push_weight": 0.1, "mixture_intra_push_target": 0.15, "mixture_inter_push_target": 0.15}
+}

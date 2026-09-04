@@ -34,7 +34,9 @@ class EventBoundaryRefiner:
         self.soft_window_temperature = float(soft_window_temperature)
 
     def build_candidates(self, center, width, boundary_positions,
-                         boundary_scores, boundary_mask):
+                         boundary_scores, boundary_mask,
+                         return_boundary_confidence=False,
+                         return_boundary_scores=False):
         """Return seven inward candidates and their validity mask.
 
         ``candidate_valid`` is intentionally conservative: duplicate
@@ -65,6 +67,11 @@ class EventBoundaryRefiner:
         valid = torch.zeros(
             batch_size, num_props, 7, dtype=torch.bool, device=center.device)
         valid[..., 0] = True
+        boundary_confidence = torch.zeros(
+            batch_size, num_props, 7, dtype=center.dtype,
+            device=center.device)
+        left_boundary_score = torch.zeros_like(boundary_confidence)
+        right_boundary_score = torch.zeros_like(boundary_confidence)
         margin = self.min_boundary_margin_clips / float(self.num_clips - 1)
 
         # The loops are over proposals, not frames.  This keeps the selection
@@ -77,6 +84,16 @@ class EventBoundaryRefiner:
                 raise ValueError("boundary positions must be finite")
             if torch.any(available & ~torch.isfinite(scores)):
                 raise ValueError("boundary scores must be finite")
+            available_scores = scores[available]
+
+            def score_percentile(score):
+                if available_scores.numel() <= 1:
+                    return score.new_ones(())
+                # A strict-lower rank gives equal scores the same deterministic
+                # percentile and avoids depending on torch sort stability.
+                return (available_scores < score).to(score.dtype).sum() / (
+                    available_scores.numel() - 1)
+
             for proposal_index in range(num_props):
                 start = original_start[batch_index, proposal_index]
                 end = original_end[batch_index, proposal_index]
@@ -122,6 +139,56 @@ class EventBoundaryRefiner:
                     needed = ((candidate_start is not None) or
                               (candidate_end is not None))
                     valid[batch_index, proposal_index, candidate_index] = needed
+                left_near_conf = (score_percentile(
+                    scores[(positions == left_near).nonzero(as_tuple=False)[0, 0]])
+                    if left_near is not None else None)
+                left_strong_conf = (score_percentile(
+                    scores[(positions == left_strong).nonzero(as_tuple=False)[0, 0]])
+                    if left_strong is not None else None)
+                right_near_conf = (score_percentile(
+                    scores[(positions == right_near).nonzero(as_tuple=False)[0, 0]])
+                    if right_near is not None else None)
+                right_strong_conf = (score_percentile(
+                    scores[(positions == right_strong).nonzero(as_tuple=False)[0, 0]])
+                    if right_strong is not None else None)
+                confidence_values = (
+                    left_near_conf, left_strong_conf,
+                    right_near_conf, right_strong_conf,
+                    (torch.minimum(left_near_conf, right_near_conf)
+                     if left_near_conf is not None and right_near_conf is not None
+                     else None),
+                    (torch.minimum(left_strong_conf, right_strong_conf)
+                     if left_strong_conf is not None and right_strong_conf is not None
+                     else None),
+                )
+                for candidate_index, confidence in enumerate(
+                        confidence_values, start=1):
+                    if confidence is not None:
+                        boundary_confidence[
+                            batch_index, proposal_index, candidate_index] = confidence
+                score_values = (
+                    (scores[(positions == left_near).nonzero(as_tuple=False)[0, 0]]
+                     if left_near is not None else None),
+                    (scores[(positions == left_strong).nonzero(as_tuple=False)[0, 0]]
+                     if left_strong is not None else None),
+                    (scores[(positions == right_near).nonzero(as_tuple=False)[0, 0]]
+                     if right_near is not None else None),
+                    (scores[(positions == right_strong).nonzero(as_tuple=False)[0, 0]]
+                     if right_strong is not None else None),
+                )
+                for candidate_index, score in enumerate(
+                        score_values, start=1):
+                    if score is not None:
+                        left_boundary_score[batch_index, proposal_index,
+                                            candidate_index] = score if candidate_index < 3 else 0
+                        right_boundary_score[batch_index, proposal_index,
+                                             candidate_index] = score if candidate_index >= 3 else 0
+                if score_values[0] is not None and score_values[2] is not None:
+                    left_boundary_score[batch_index, proposal_index, 5] = score_values[0]
+                    right_boundary_score[batch_index, proposal_index, 5] = score_values[2]
+                if score_values[1] is not None and score_values[3] is not None:
+                    left_boundary_score[batch_index, proposal_index, 6] = score_values[1]
+                    right_boundary_score[batch_index, proposal_index, 6] = score_values[3]
 
         candidate_width = ends - starts
         minimum_width = torch.maximum(
@@ -148,6 +215,16 @@ class EventBoundaryRefiner:
 
         candidate_type = torch.arange(7, device=center.device,
                                       dtype=torch.long)
+        if return_boundary_confidence:
+            boundary_confidence = boundary_confidence.masked_fill(~valid, 0)
+            left_boundary_score = left_boundary_score.masked_fill(~valid, 0)
+            right_boundary_score = right_boundary_score.masked_fill(~valid, 0)
+            if return_boundary_scores:
+                return (starts, ends, valid, candidate_type,
+                        boundary_confidence, left_boundary_score,
+                        right_boundary_score)
+            return (starts, ends, valid, candidate_type,
+                    boundary_confidence)
         return starts, ends, valid, candidate_type
 
     def build_candidate_masks(self, original_mask, candidate_start,
@@ -178,37 +255,120 @@ class EventBoundaryRefiner:
         if candidate_valid.shape != candidate_start.shape:
             raise ValueError("candidate_valid shape does not match geometry")
 
-        batch_size, num_props, _, sequence_length = (
-            candidate_start.size(0), candidate_start.size(1),
-            candidate_start.size(2), original_mask.size(2))
-        masks = original_mask.new_zeros(
-            batch_size, num_props, 7, sequence_length)
-        # This assignment is deliberately direct.  It guarantees the baseline
-        # proposal has exactly the same Gaussian/mixture mask as before Stage A.
-        masks[..., 0, :] = original_mask
-        mask_valid = candidate_valid.clone()
-        mask_valid[..., 0] = True
+        masks, _, mask_valid, _ = self._build_trim_shell_masks(
+            original_mask, candidate_start, candidate_end, candidate_valid)
+        return masks, mask_valid
+
+    def build_shell_masks_with_validity(
+            self, original_mask, candidate_start, candidate_end,
+            candidate_valid=None):
+        """Return normalized removed-shell masks and their validity.
+
+        The shell is computed from the same unnormalized soft window as trim:
+        ``original * (1 - window)``.  It is normalized independently, so the
+        complement is formed before either side is rescaled.
+        """
+        _, shell_masks, _, shell_valid = self._build_trim_shell_masks(
+            original_mask, candidate_start, candidate_end, candidate_valid)
+        return shell_masks, shell_valid
+
+    def build_candidate_masks_with_shell_validity(
+            self, original_mask, candidate_start, candidate_end,
+            candidate_valid=None):
+        """Return ``(trim, shell, trim_valid, shell_valid)`` together."""
+        return self._build_trim_shell_masks(
+            original_mask, candidate_start, candidate_end, candidate_valid)
+
+    def build_candidate_masks_with_shell(
+            self, original_mask, candidate_start, candidate_end,
+            candidate_valid=None):
+        """Compatibility convenience wrapper returning normalized masks."""
+        trim, shell, _, _ = self._build_trim_shell_masks(
+            original_mask, candidate_start, candidate_end, candidate_valid)
+        return trim, shell
+
+    def build_raw_trim_shell_masks(
+            self, original_mask, candidate_start, candidate_end):
+        """Return raw (not independently normalized) trim and shell masks."""
+        self._validate_mask_inputs(
+            original_mask, candidate_start, candidate_end,
+            torch.ones(candidate_start.shape, dtype=torch.bool,
+                       device=candidate_start.device))
+        sequence_length = original_mask.size(-1)
         positions = torch.linspace(
             0.0, 1.0, sequence_length, device=candidate_start.device,
             dtype=candidate_start.dtype).view(1, 1, 1, sequence_length)
         temperature = candidate_start.new_tensor(self.soft_window_temperature)
-        left = torch.sigmoid(
-            (positions - candidate_start.unsqueeze(-1)) / temperature)
-        right = torch.sigmoid(
-            (candidate_end.unsqueeze(-1) - positions) / temperature)
-        soft_window = left * right
-        trimmed = original_mask.unsqueeze(2) * soft_window
-        trimmed_max = trimmed.amax(dim=-1, keepdim=True)
-        trimmed_finite = torch.isfinite(trimmed).all(dim=-1)
-        trimmed_valid = (trimmed_finite & torch.isfinite(trimmed_max.squeeze(-1))
-                         & (trimmed_max.squeeze(-1) >= 1e-6))
-        trimmed = trimmed / trimmed_max.clamp_min(1e-6)
-        trimmed = torch.where(torch.isfinite(trimmed), trimmed,
-                              torch.zeros_like(trimmed))
-        masks[..., 1:, :] = trimmed[..., 1:, :]
-        mask_valid[..., 1:] &= trimmed_valid[..., 1:]
-        masks = masks.masked_fill(~mask_valid.unsqueeze(-1), 0)
-        return masks, mask_valid
+        window = torch.sigmoid(
+            (positions - candidate_start.unsqueeze(-1)) / temperature) * \
+            torch.sigmoid(
+                (candidate_end.unsqueeze(-1) - positions) / temperature)
+        raw_trim = original_mask.unsqueeze(2) * window
+        raw_shell = original_mask.unsqueeze(2) * (1.0 - window)
+        return raw_trim, raw_shell
+
+    def _validate_mask_inputs(self, original_mask, candidate_start,
+                              candidate_end, candidate_valid):
+        if original_mask.ndim != 3:
+            raise ValueError("original_mask must have shape [B, N, L]")
+        if candidate_start.shape != candidate_end.shape or \
+                candidate_start.ndim != 3 or candidate_start.size(-1) != 7:
+            raise ValueError("candidate geometry must have shape [B, N, 7]")
+        if candidate_start.shape[:2] != original_mask.shape[:2]:
+            raise ValueError("candidate geometry does not match original mask")
+        if original_mask.size(-1) < 2:
+            raise ValueError("soft masks need at least two time positions")
+        if not torch.isfinite(original_mask).all():
+            raise ValueError("original mask must be finite")
+        if candidate_valid.shape != candidate_start.shape:
+            raise ValueError("candidate_valid shape does not match geometry")
+
+    def _build_trim_shell_masks(self, original_mask, candidate_start,
+                                candidate_end, candidate_valid=None):
+        if candidate_valid is None:
+            candidate_valid = torch.ones(
+                candidate_start.shape, dtype=torch.bool,
+                device=candidate_start.device)
+        self._validate_mask_inputs(
+            original_mask, candidate_start, candidate_end, candidate_valid)
+        batch_size, num_props, _, sequence_length = (
+            candidate_start.size(0), candidate_start.size(1),
+            candidate_start.size(2), original_mask.size(2))
+        raw_trim, raw_shell = self.build_raw_trim_shell_masks(
+            original_mask, candidate_start, candidate_end)
+        trim_masks = original_mask.new_zeros(
+            batch_size, num_props, 7, sequence_length)
+        shell_masks = original_mask.new_zeros(
+            batch_size, num_props, 7, sequence_length)
+        trim_masks[..., 0, :] = original_mask
+        trim_valid = candidate_valid.clone()
+        trim_valid[..., 0] = True
+        shell_valid = candidate_valid.clone()
+        shell_valid[..., 0] = False
+
+        trim_max = raw_trim.amax(dim=-1, keepdim=True)
+        shell_max = raw_shell.amax(dim=-1, keepdim=True)
+        trim_validity = (torch.isfinite(raw_trim).all(dim=-1) &
+                         torch.isfinite(trim_max.squeeze(-1)) &
+                         (trim_max.squeeze(-1) >= 1e-6))
+        shell_validity = (torch.isfinite(raw_shell).all(dim=-1) &
+                          torch.isfinite(shell_max.squeeze(-1)) &
+                          (shell_max.squeeze(-1) >= 1e-6))
+        trim_normalized = raw_trim / trim_max.clamp_min(1e-6)
+        shell_normalized = raw_shell / shell_max.clamp_min(1e-6)
+        trim_normalized = torch.where(
+            torch.isfinite(trim_normalized), trim_normalized,
+            torch.zeros_like(trim_normalized))
+        shell_normalized = torch.where(
+            torch.isfinite(shell_normalized), shell_normalized,
+            torch.zeros_like(shell_normalized))
+        trim_masks[..., 1:, :] = trim_normalized[..., 1:, :]
+        shell_masks[..., 1:, :] = shell_normalized[..., 1:, :]
+        trim_valid[..., 1:] &= trim_validity[..., 1:]
+        shell_valid[..., 1:] &= shell_validity[..., 1:]
+        trim_masks = trim_masks.masked_fill(~trim_valid.unsqueeze(-1), 0)
+        shell_masks = shell_masks.masked_fill(~shell_valid.unsqueeze(-1), 0)
+        return trim_masks, shell_masks, trim_valid, shell_valid
 
 
 __all__ = ["EventBoundaryRefiner"]

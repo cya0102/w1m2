@@ -1,0 +1,42 @@
+{
+  "STAGE_B_GO": true,
+  "config": {
+    "accept_margin": 0.01,
+    "allowed_candidate_types": [
+      "left_near",
+      "left_strong",
+      "right_near",
+      "right_strong"
+    ],
+    "enabled": true,
+    "lambda_boundary": 0.1,
+    "lambda_contrast": 1.0,
+    "lambda_edit": 0.25,
+    "lambda_uncertainty": 0.5,
+    "max_contrast_std": 0.01,
+    "max_nll_increase": 0.01,
+    "max_relative_shift": 0.1,
+    "min_boundary_percentile": 0.5,
+    "min_contrast_margin": 0.0,
+    "min_parent_width": 0.35,
+    "min_retained_ratio": 0.6,
+    "selector": "counterfactual_gated"
+  },
+  "selection_protocol": "validation-only hierarchical Stage-A.5 scan",
+  "validation_summary": {
+    "baseline_R1_IoU@0.5": 1.0,
+    "baseline_R1_mIoU": 0.8999999990686774,
+    "baseline_R5_mIoU": 0.8999999990686774,
+    "changed_fraction": 1.0,
+    "harmful_fraction": 0.0,
+    "helpful_fraction": 1.0,
+    "long_R5_penalty": 0.0,
+    "objective": 0.15000000139698383,
+    "phase": "semantic",
+    "stage_R1_IoU@0.5": 1.0,
+    "stage_R1_mIoU": 1.0,
+    "stage_R5_mIoU": 1.0,
+    "stage_b_go": true,
+    "trim_precision": 1.0
+  }
+}

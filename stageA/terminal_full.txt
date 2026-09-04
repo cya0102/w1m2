@@ -1,0 +1,990 @@
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+export PYTHONPATH=.
+export CUDA_VISIBLE_DEVICES=0
+
+for label in best-r1 best-composite best-r5; do
+  checkpoint="checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-${label}.pt"
+  output_dir="outputs/stage_a5/activitynet/${label}"
+
+  if [ -e "${output_dir}/val_candidates_features.npz" ] || \
+     [ -e "${output_dir}/val_candidates_labels.npz" ]; then
+    echo "Refuse to overwrite existing output: ${output_dir}" >&2
+    exit 1
+  fi
+
+  PYTHONPATH=. "$PYTHON" tools/dump_stage_a5_candidates.py \
+    --config-path config/activitynet/stage_a5.json \
+done--output "${output_dir}/val_candidates"}" \
+Proposal selection strategy: nll (temperature=0.1).
+train: 37421 samples, test: 17031 samples
+CPL(
+  (frame_fc): Linear(in_features=500, out_features=256, bias=True)
+  (word_fc): Linear(in_features=300, out_features=256, bias=True)
+  (trans): DualTransformer(
+    (decoder1): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (decoder2): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+  )
+  (fc_comp): Linear(in_features=256, out_features=8001, bias=True)
+  (mixture_generator): GaussianMixtureProposalGenerator(
+    num_proposals=5, counts=[1, 2, 3, 4, 5], sigma=4.0, boundary=outer, shrink=0.0
+    (center_head): Linear(in_features=256, out_features=15, bias=True)
+    (width_head): Linear(in_features=256, out_features=5, bias=True)
+    (importance_projection): Linear(in_features=256, out_features=256, bias=False)
+    (importance_score): Linear(in_features=256, out_features=1, bias=False)
+  )
+  (word_pos_encoder): SinusoidalPositionalEmbedding()
+  (event_disentangler): LowRankEventDisentangler(hidden_size=256, rank=8, alpha=1.0, ema=0.95)
+)
+Total: 7078561 Trainable: 7078561
+load model parameters from /data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_20
+26-09-01_22-49-42/model-best-r1.pt.
+tools/dump_stage_a5_candidates.py:212: RuntimeWarning: invalid value encountered in subtract
+  contrast_values = shell_values - nll_values
+^[[B^CTraceback (most recent call last):
+  File "tools/dump_stage_a5_candidates.py", line 355, in <module>
+    main()
+  File "tools/dump_stage_a5_candidates.py", line 351, in main
+    export_candidates(args)
+  File "tools/dump_stage_a5_candidates.py", line 121, in export_candidates
+    for batch_count, batch in enumerate(loader, 1):
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 628, in
+ __next__
+    data = self._next_data()
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1316, i
+n _next_data
+    idx, data = self._get_data()
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1282, i
+n _get_data
+    success, data = self._try_get_data()
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 1120, i
+n _try_get_data
+    data = self._data_queue.get(timeout=timeout)
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/multiprocessing/queues.py", line 116, in get
+^C^C^C^C^C^C^C^C^C  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/multiprocessing/reduc
+tions.py", line 100, in rebuild_tensor
+    t = torch._utils._rebuild_tensor(storage, storage_offset, size, stride)
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/_utils.py", line 146, in _rebuild_tenso
+r
+    t = torch.tensor([], dtype=storage.dtype, device=storage.untyped().device)
+KeyboardInterrupt
+^C^C
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+/home/chenyuan/miniconda3/envs/cpl/bin/python - <<'PY'
+import torch
+print("CUDA available:", torch.cuda.is_available())
+print("CUDA devices:", torch.cuda.device_count())
+PY
+
+nvidia-smi
+CUDA available: True
+CUDA devices: 1
+Wed Sep  2 16:43:39 2026
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.71.05              Driver Version: 595.71.05      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA TITAN RTX               Off |   00000000:06:00.0 Off |                  N/A |
+| 41%   41C    P8              4W /  280W |      16MiB /  24576MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA GeForce RTX 3090        Off |   00000000:0A:00.0 Off |                  N/A |
+| 41%   38C    P8             30W /  350W |   19469MiB /  24576MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A            1655      G   /usr/lib/xorg/Xorg                        9MiB |
+|    0   N/A  N/A            1776      G   /usr/bin/gnome-shell                      4MiB |
+|    1   N/A  N/A            1655      G   /usr/lib/xorg/Xorg                        4MiB |
+|    1   N/A  N/A          224805      C   VLLM::EngineCore                      19446MiB |
++-----------------------------------------------------------------------------------------+
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+nvidia-smi
+
+CUDA_VISIBLE_DEVICES=0 \
+/home/chenyuan/miniconda3/envs/cpl/bin/python - <<'PY'
+import torch
+print("torch:", torch.__version__)
+print("cuda available:", torch.cuda.is_available())
+print("device count:", torch.cuda.device_count())
+if torch.cuda.is_available():
+    print("device:", torch.cuda.get_device_name(0))
+PY
+Wed Sep  2 16:45:02 2026
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.71.05              Driver Version: 595.71.05      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA TITAN RTX               Off |   00000000:06:00.0 Off |                  N/A |
+| 41%   39C    P8              3W /  280W |      16MiB /  24576MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA GeForce RTX 3090        Off |   00000000:0A:00.0 Off |                  N/A |
+| 41%   35C    P8             28W /  350W |      15MiB /  24576MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A            1655      G   /usr/lib/xorg/Xorg                        9MiB |
+|    0   N/A  N/A            1776      G   /usr/bin/gnome-shell                      4MiB |
+|    1   N/A  N/A            1655      G   /usr/lib/xorg/Xorg                        4MiB |
++-----------------------------------------------------------------------------------------+
+torch: 1.13.0
+cuda available: True
+device count: 1
+device: NVIDIA GeForce RTX 3090
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+export PYTHONPATH=.
+export CUDA_VISIBLE_DEVICES=0
+
+for label in best-r1 best-composite best-r5; do
+  checkpoint="checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-${label}.pt"
+  output_dir="outputs/stage_a5/activitynet/${label}"
+
+  if [ -e "${output_dir}/val_candidates_features.npz" ] || \
+     [ -e "${output_dir}/val_candidates_labels.npz" ]; then
+    echo "Refuse to overwrite existing output: ${output_dir}" >&2
+    exit 1
+  fi
+
+  PYTHONPATH=. "$PYTHON" tools/dump_stage_a5_candidates.py \
+    --config-path config/activitynet/stage_a5.json \
+    --checkpoint "$checkpoint" \
+    --checkpoint-label "activitynet_${label}" \
+    --split val \
+    --mask-seeds 8,18,28 \
+    --device cuda \
+    --output "${output_dir}/val_candidates"
+done
+Proposal selection strategy: nll (temperature=0.1).
+train: 37421 samples, test: 17031 samples
+CPL(
+  (frame_fc): Linear(in_features=500, out_features=256, bias=True)
+  (word_fc): Linear(in_features=300, out_features=256, bias=True)
+  (trans): DualTransformer(
+    (decoder1): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (decoder2): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+  )
+  (fc_comp): Linear(in_features=256, out_features=8001, bias=True)
+  (mixture_generator): GaussianMixtureProposalGenerator(
+    num_proposals=5, counts=[1, 2, 3, 4, 5], sigma=4.0, boundary=outer, shrink=0.0
+    (center_head): Linear(in_features=256, out_features=15, bias=True)
+    (width_head): Linear(in_features=256, out_features=5, bias=True)
+    (importance_projection): Linear(in_features=256, out_features=256, bias=False)
+    (importance_score): Linear(in_features=256, out_features=1, bias=False)
+  )
+  (word_pos_encoder): SinusoidalPositionalEmbedding()
+  (event_disentangler): LowRankEventDisentangler(hidden_size=256, rank=8, alpha=1.0, ema=0.95)
+)
+Total: 7078561 Trainable: 7078561
+load model parameters from /data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_20
+26-09-01_22-49-42/model-best-r1.pt.
+tools/dump_stage_a5_candidates.py:212: RuntimeWarning: invalid value encountered in subtract
+  contrast_values = shell_values - nll_values
+^CTraceback (most recent call last):
+  File "tools/dump_stage_a5_candidates.py", line 355, in <module>
+    parser.add_argument('--mask-seeds', default=None)
+  File "tools/dump_stage_a5_candidates.py", line 351, in main
+    parser.add_argument('--config-path', required=True)
+  File "tools/dump_stage_a5_candidates.py", line 148, in export_candidates
+    output = runner.model(epoch=args.epoch, **net_input)
+  File "/home/chenyuan/miniconda3/envs/cpl/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1190, in _c
+all_impl
+    return forward_call(*input, **kwargs)
+  File "/data/chenyuan/videogrounding/w1m2/stageA/models/cpl.py", line 336, in forward
+    self.stage_a_refiner.build_candidates(
+  File "/data/chenyuan/videogrounding/w1m2/stageA/models/modules/event_boundary_refinement.py", line 188, in build_c
+andidates
+    right_boundary_score[batch_index, proposal_index, 5] = score_values[2]
+KeyboardInterrupt
+
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ for label in best-r1 best-composite best-r5; do
+ checkpoint="checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-${label}.pt";   output_dir="outp
+uts/stage_a5/activitynet/${label}"   if [ -e "${output_dir}/val_candidates_features.npz" ] ||      [ -e "${output_di
+r}/val_candidates_labels.npz" ]; then     echo "Refuse to overwrite existing output: ${output_dir}" >&2;     exit 1;
+   fi   PYTHONPATH=. "$PYTHON" tools/dump_stage_a5_candidates.py     --config-path config/activitynet/stage_a5.json
+    --checkpoint "$checkpoint"     --checkpoint-label "activitynet_${label}"     --split val     --mask-seeds 8,18,2
+8     --device cuda     --output "${output_dir}/val_candidates"; done
+-bash: syntax error near unexpected token `then'
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+export PYTHONPATH=.
+export CUDA_VISIBLE_DEVICES=0
+
+for label in best-r1 best-composite best-r5; do
+  checkpoint="checkpoints/activitynet/baseline_activitynet_2026-09-01_22-49-42/model-${label}.pt"
+  output_dir="outputs/stage_a5/activitynet/${label}"
+
+  if [ -e "${output_dir}/val_candidates_features.npz" ] || \
+     [ -e "${output_dir}/val_candidates_labels.npz" ]; then
+    echo "Refuse to overwrite existing output: ${output_dir}" >&2
+    exit 1
+  fi
+
+  PYTHONPATH=. "$PYTHON" tools/dump_stage_a5_candidates.py \
+    --config-path config/activitynet/stage_a5.json \
+    --checkpoint "$checkpoint" \
+    --checkpoint-label "activitynet_${label}" \
+    --split val \
+    --mask-seeds 8,18,28 \
+    --device cuda \
+    --output "${output_dir}/val_candidates"
+done
+Proposal selection strategy: nll (temperature=0.1).
+train: 37421 samples, test: 17031 samples
+CPL(
+  (frame_fc): Linear(in_features=500, out_features=256, bias=True)
+  (word_fc): Linear(in_features=300, out_features=256, bias=True)
+  (trans): DualTransformer(
+    (decoder1): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (decoder2): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+  )
+  (fc_comp): Linear(in_features=256, out_features=8001, bias=True)
+  (mixture_generator): GaussianMixtureProposalGenerator(
+    num_proposals=5, counts=[1, 2, 3, 4, 5], sigma=4.0, boundary=outer, shrink=0.0
+    (center_head): Linear(in_features=256, out_features=15, bias=True)
+    (width_head): Linear(in_features=256, out_features=5, bias=True)
+    (importance_projection): Linear(in_features=256, out_features=256, bias=False)
+    (importance_score): Linear(in_features=256, out_features=1, bias=False)
+  )
+  (word_pos_encoder): SinusoidalPositionalEmbedding()
+  (event_disentangler): LowRankEventDisentangler(hidden_size=256, rank=8, alpha=1.0, ema=0.95)
+)
+Total: 7078561 Trainable: 7078561
+load model parameters from /data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_20
+26-09-01_22-49-42/model-best-r1.pt.
+saved features to outputs/stage_a5/activitynet/best-r1/val_candidates_features.npz
+saved labels to outputs/stage_a5/activitynet/best-r1/val_candidates_labels.npz
+Proposal selection strategy: nll (temperature=0.1).
+train: 37421 samples, test: 17031 samples
+CPL(
+  (frame_fc): Linear(in_features=500, out_features=256, bias=True)
+  (word_fc): Linear(in_features=300, out_features=256, bias=True)
+  (trans): DualTransformer(
+    (decoder1): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (decoder2): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+  )
+  (fc_comp): Linear(in_features=256, out_features=8001, bias=True)
+  (mixture_generator): GaussianMixtureProposalGenerator(
+    num_proposals=5, counts=[1, 2, 3, 4, 5], sigma=4.0, boundary=outer, shrink=0.0
+    (center_head): Linear(in_features=256, out_features=15, bias=True)
+    (width_head): Linear(in_features=256, out_features=5, bias=True)
+    (importance_projection): Linear(in_features=256, out_features=256, bias=False)
+    (importance_score): Linear(in_features=256, out_features=1, bias=False)
+  )
+  (word_pos_encoder): SinusoidalPositionalEmbedding()
+  (event_disentangler): LowRankEventDisentangler(hidden_size=256, rank=8, alpha=1.0, ema=0.95)
+)
+Total: 7078561 Trainable: 7078561
+load model parameters from /data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_20
+26-09-01_22-49-42/model-best-composite.pt.
+saved features to outputs/stage_a5/activitynet/best-composite/val_candidates_features.npz
+saved labels to outputs/stage_a5/activitynet/best-composite/val_candidates_labels.npz
+Proposal selection strategy: nll (temperature=0.1).
+train: 37421 samples, test: 17031 samples
+CPL(
+  (frame_fc): Linear(in_features=500, out_features=256, bias=True)
+  (word_fc): Linear(in_features=300, out_features=256, bias=True)
+  (trans): DualTransformer(
+    (decoder1): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (decoder2): TransformerDecoder(
+      (decoder_layers): ModuleList(
+        (0): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): TransformerDecoderLayer(
+          (self_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (self_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (encoder_attn): MultiheadAttention(
+            (out_proj): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (encoder_attn_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (fc1): Linear(in_features=256, out_features=512, bias=True)
+          (fc2): Linear(in_features=512, out_features=256, bias=True)
+          (final_layer_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+  )
+  (fc_comp): Linear(in_features=256, out_features=8001, bias=True)
+  (mixture_generator): GaussianMixtureProposalGenerator(
+    num_proposals=5, counts=[1, 2, 3, 4, 5], sigma=4.0, boundary=outer, shrink=0.0
+    (center_head): Linear(in_features=256, out_features=15, bias=True)
+    (width_head): Linear(in_features=256, out_features=5, bias=True)
+    (importance_projection): Linear(in_features=256, out_features=256, bias=False)
+    (importance_score): Linear(in_features=256, out_features=1, bias=False)
+  )
+  (word_pos_encoder): SinusoidalPositionalEmbedding()
+  (event_disentangler): LowRankEventDisentangler(hidden_size=256, rank=8, alpha=1.0, ema=0.95)
+)
+Total: 7078561 Trainable: 7078561
+load model parameters from /data/chenyuan/videogrounding/w1m2/stageA/checkpoints/activitynet/baseline_activitynet_20
+26-09-01_22-49-42/model-best-r5.pt.
+saved features to outputs/stage_a5/activitynet/best-r5/val_candidates_features.npz
+saved labels to outputs/stage_a5/activitynet/best-r5/val_candidates_labels.npz
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+PYTHONPATH=. "$PYTHON" - <<'PY'
+import hashlib
+import json
+from pathlib import Path
+
+import numpy as np
+
+root = Path("outputs/stage_a5/activitynet")
+expected_q = 17505
+labels = ("best-r1", "best-composite", "best-r5")
+
+def sha256(path):
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+for label in labels:
+    out = root / label
+    fp = out / "val_candidates_features.npz"
+    lp = out / "val_candidates_labels.npz"
+
+    with np.load(fp, allow_pickle=False) as f, \
+         np.load(lp, allow_pickle=False) as l:
+        meta = json.loads(str(f["metadata_json"].reshape(-1)[0]))
+        label_meta = json.loads(str(l["metadata_json"].reshape(-1)[0]))
+
+        assert meta == label_meta
+        assert meta["partial"] is False
+        assert meta["query_count"] == expected_q
+        assert meta["validation_is_test"] is False
+        assert meta["mask_seeds"] == [8, 18, 28]
+
+        assert np.array_equal(f["sample_ids"], l["sample_ids"])
+        assert np.array_equal(f["video_ids"], l["video_ids"])
+        assert len(f["sample_ids"]) == expected_q
+        assert len(np.unique(f["sample_ids"])) == expected_q
+
+        assert not any("gt" in key.lower() for key in f.files)
+        assert np.allclose(
+            f["candidate_start"][..., 0], f["parent_start"], atol=1e-6)
+PYint("all ActivityNet validation exports passed protocol checks"))
+best-r1 OK: 17505 queries
+best-composite OK: 17505 queries
+best-r5 OK: 17505 queries
+all ActivityNet validation exports passed protocol checks
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+export PYTHONPATH=.
+
+for label in best-r1 best-composite best-r5; do
+  output_dir="outputs/stage_a5/activitynet/${label}"
+
+  PYTHONPATH=. "$PYTHON" tools/analyze_stage_a5_oracle.py \
+    --features "${output_dir}/val_candidates_features.npz" \
+    --labels "${output_dir}/val_candidates_labels.npz" \
+    --rows-output "${output_dir}/val_oracle_rows.csv" \
+    --summary-output "${output_dir}/val_oracle_summary.json" \
+    --bootstrap-replicates 2000
+done
+saved oracle rows to outputs/stage_a5/activitynet/best-r1/val_oracle_rows.csv
+saved oracle summary to outputs/stage_a5/activitynet/best-r1/val_oracle_summary.json
+saved oracle rows to outputs/stage_a5/activitynet/best-composite/val_oracle_rows.csv
+saved oracle summary to outputs/stage_a5/activitynet/best-composite/val_oracle_summary.json
+saved oracle rows to outputs/stage_a5/activitynet/best-r5/val_oracle_rows.csv
+saved oracle summary to outputs/stage_a5/activitynet/best-r5/val_oracle_summary.json
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+export PYTHONPATH=.
+
+for label in best-r1 best-composite best-r5; do
+  output_dir="outputs/stage_a5/activitynet/${label}"
+
+  PYTHONPATH=. "$PYTHON" tools/scan_stage_a5_selectors.py \
+    --features "${output_dir}/val_candidates_features.npz" \
+    --labels "${output_dir}/val_candidates_labels.npz" \
+    --output "${output_dir}/selector_scan.csv" \
+    --selected-config-output "${output_dir}/selected_stage_a5_config.json" \
+    --top-geometry 10 \
+    --top-semantic 5
+done
+saved selector scan to outputs/stage_a5/activitynet/best-r1/selector_scan.csv
+saved selected config to outputs/stage_a5/activitynet/best-r1/selected_stage_a5_config.json
+saved selector scan to outputs/stage_a5/activitynet/best-composite/selector_scan.csv
+saved selected config to outputs/stage_a5/activitynet/best-composite/selected_stage_a5_config.json
+saved selector scan to outputs/stage_a5/activitynet/best-r5/selector_scan.csv
+saved selected config to outputs/stage_a5/activitynet/best-r5/selected_stage_a5_config.json
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHONPATH=. /home/chenyuan/miniconda3/envs/cpl/bin/python - <<'PY'
+import json
+from pathlib import Path
+
+root = Path("outputs/stage_a5/activitynet")
+
+for label in ("best-r1", "best-composite", "best-r5"):
+    path = root / label / "selected_stage_a5_config.json"
+    with path.open() as f:
+        selected = json.load(f)
+
+    print("\nCHECKPOINT:", label)
+    print("num_scanned_configs:", selected["num_scanned_configs"])
+    print("num_gate_passing_configs:",
+          selected["num_gate_passing_configs"])
+    print("selection_reason:", selected["selection_reason"])
+    print("STAGE_B_GO:", selected["STAGE_B_GO"])
+    print("diagnostic_only:", selected["diagnostic_only"])
+
+    assert selected["diagnostic_only"] is False
+    assert selected["num_scanned_configs"] == 1962
+PY
+
+CHECKPOINT: best-r1
+num_scanned_configs: 1962
+num_gate_passing_configs: 0
+selection_reason: no_gate_passing_config_best_objective_with_gate_false
+STAGE_B_GO: False
+diagnostic_only: False
+
+CHECKPOINT: best-composite
+num_scanned_configs: 1962
+num_gate_passing_configs: 0
+selection_reason: no_gate_passing_config_best_objective_with_gate_false
+STAGE_B_GO: False
+diagnostic_only: False
+
+CHECKPOINT: best-r5
+num_scanned_configs: 1962
+num_gate_passing_configs: 0
+selection_reason: no_gate_passing_config_best_objective_with_gate_false
+STAGE_B_GO: False
+diagnostic_only: False
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHON=/home/chenyuan/miniconda3/envs/cpl/bin/python
+export PYTHONPATH=.
+
+for label in best-r1 best-composite best-r5; do
+  output_dir="outputs/stage_a5/activitynet/${label}"
+
+  PYTHONPATH=. "$PYTHON" tools/evaluate_stage_a5.py \
+    --features "${output_dir}/val_candidates_features.npz" \
+    --labels "${output_dir}/val_candidates_labels.npz" \
+    --selected-config "${output_dir}/selected_stage_a5_config.json" \
+    --output "${output_dir}/val_frozen_report.json" \
+    --bootstrap-replicates 2000 \
+    --bootstrap-seed 20260902
+done
+saved Stage-A.5 evaluation report to outputs/stage_a5/activitynet/best-r1/val_frozen_report.json
+saved Stage-A.5 evaluation report to outputs/stage_a5/activitynet/best-composite/val_frozen_report.json
+saved Stage-A.5 evaluation report to outputs/stage_a5/activitynet/best-r5/val_frozen_report.json
+(cpl) chenyuan@ping501g:/data/chenyuan/videogrounding/w1m2/stageA$ cd /data/chenyuan/videogrounding/w1m2/stageA
+
+PYTHONPATH=. /home/chenyuan/miniconda3/envs/cpl/bin/python - <<'PY'
+import json
+from pathlib import Path
+
+root = Path("outputs/stage_a5/activitynet")
+labels = ("best-r1", "best-composite", "best-r5")
+
+all_pass = True
+
+for label in labels:
+    with (root / label / "selected_stage_a5_config.json").open() as f:
+        selected = json.load(f)
+    with (root / label / "val_frozen_report.json").open() as f:
+        report = json.load(f)
+
+    base = report["baseline_metrics"]
+    stage = report["stage_a5_metrics"]
+    delta = report["delta_metrics"]
+    bootstrap = report["video_cluster_bootstrap"]
+
+    bucket_pass = all(
+        values["delta_R1_mIoU"] >= -0.01 and
+        values["delta_R5_mIoU"] >= -0.01
+        for values in report["gt_width_buckets"].values()
+    )
+
+    bootstrap_pass = all(
+        bootstrap[name]["ci95"][0] >= 0.0
+        for name in (
+            "R@1,mIoU",
+            "R@1,IoU@0.5",
+            "R@5,mIoU",
+            "R@5,IoU@0.5",
+        )
+    )
+
+    passed = (
+        selected["diagnostic_only"] is False and
+        report["diagnostic_only"] is False and
+        delta["R@1,mIoU"] >= 0.0 and
+        delta["R@5,mIoU"] >= 0.0 and
+        (
+            stage["R@1,IoU@0.5"] > base["R@1,IoU@0.5"] or
+PYint("\nSTAGE_B_GO=" + ("true" if all_pass else "false"))ion"] and
+
+CHECKPOINT: best-r1
+baseline R@1/R@5 mIoU: 0.35085782967712137 0.4863099762167935
+Stage-A.5 R@1/R@5 mIoU: 0.3507104242518978 0.48633725513856824
+delta: {'R@1,IoU@0.5': -0.0001713796058269157, 'R@1,mIoU': -0.00014740542522356792, 'R@5,IoU@0.5': 0.000114253070551
+29563, 'R@5,mIoU': 2.7278921774731568e-05}
+changed/helpful/harmful/neutral: 0.007734932876321051 0.0021708083404741504 0.0013024850042844902 0.0042616395315624
+11
+trim_precision: 0.625
+bucket_pass: True
+bootstrap_pass: False
+checkpoint_pass: False
+
+CHECKPOINT: best-composite
+baseline R@1/R@5 mIoU: 0.34390551122454166 0.5080916317192481
+Stage-A.5 R@1/R@5 mIoU: 0.3439388502487824 0.5080665628130285
+delta: {'R@1,IoU@0.5': 0.0001713796058269157, 'R@1,mIoU': 3.3339024240741644e-05, 'R@5,IoU@0.5': 5.712653527556455e-
+05, 'R@5,mIoU': -2.5068906219560816e-05}
+changed/helpful/harmful/neutral: 0.002159383033419023 0.000536989431590974 0.0006855184233076263 0.00093687517852042
+27
+trim_precision: 0.4392523364485981
+bucket_pass: True
+bootstrap_pass: False
+checkpoint_pass: False
+
+CHECKPOINT: best-r5
+baseline R@1/R@5 mIoU: 0.34390551122454166 0.5080916317192481
+Stage-A.5 R@1/R@5 mIoU: 0.3439388502487824 0.5080665628130285
+delta: {'R@1,IoU@0.5': 0.0001713796058269157, 'R@1,mIoU': 3.3339024240741644e-05, 'R@5,IoU@0.5': 5.712653527556455e-
+05, 'R@5,mIoU': -2.5068906219560816e-05}
+changed/helpful/harmful/neutral: 0.002159383033419023 0.000536989431590974 0.0006855184233076263 0.00093687517852042
+27
+trim_precision: 0.4392523364485981
+bucket_pass: True
+bootstrap_pass: False
+checkpoint_pass: False
+
+STAGE_B_GO=false
+

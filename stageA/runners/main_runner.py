@@ -15,6 +15,11 @@ from models.loss import (
     rec_loss,
 )
 from utils import TimeMeter, AverageMeter
+from runners.stage_a5 import (
+    CANDIDATE_NAMES,
+    REASON_CODES,
+    select_stage_a5_candidates,
+)
 
 import pickle
 import copy
@@ -60,6 +65,16 @@ class MainRunner:
         stage_a_config = self.args['model']['config'].get(
             'event_boundary_refinement', {})
         self.stage_a_enabled = bool(stage_a_config.get('enabled', False))
+        self.stage_a5_config = dict(stage_a_config.get('stage_a5', {}))
+        self.stage_a5_enabled = bool(self.stage_a5_config.get('enabled', False))
+        if self.stage_a5_enabled and not self.stage_a_enabled:
+            raise ValueError('Stage A.5 requires Stage A to be enabled')
+        self.stage_a5_mask_seeds = tuple(int(seed) for seed in self.stage_a5_config.get(
+            'eval_mask_seeds', [8, 18, 28]))
+        if self.stage_a5_enabled and not self.stage_a5_mask_seeds:
+            raise ValueError('Stage A.5 requires at least one eval mask seed')
+        if len(set(self.stage_a5_mask_seeds)) != len(self.stage_a5_mask_seeds):
+            raise ValueError('Stage A.5 eval mask seeds must be unique')
         self.stage_a_report_only = bool(stage_a_config.get('report_only', True))
         self.stage_a_max_nll_increase = float(
             stage_a_config.get('max_nll_increase', 0.02))
@@ -239,17 +254,64 @@ class MainRunner:
         } if self.stage_a_enabled else {}
         stage_a_diagnostics_logger = collections.defaultdict(
             lambda: AverageMeter())
+        stage_a5_metric_logger = collections.defaultdict(
+            lambda: AverageMeter()) if self.stage_a5_enabled else None
+        stage_a5_diagnostics_logger = collections.defaultdict(
+            lambda: AverageMeter()) if self.stage_a5_enabled else None
         with torch.no_grad():
             for bid, batch in enumerate(loader, 1):
                 durations = np.asarray([i[1] for i in batch['raw']])
                 gt = np.asarray([i[2] for i in batch['raw']])
 
-                net_input = move_to_cuda(batch['net_input'])
-                if self.stage_a_enabled:
-                    # The explicit flag prevents Stage A from ever running in
-                    # training forward passes, even when the config is shared.
-                    net_input['run_stage_a'] = True
-                output = self.model(epoch=epoch, **net_input)
+                mask_seeds = (self.stage_a5_mask_seeds
+                              if self.stage_a5_enabled else (None,))
+                outputs = []
+                parent_nlls = []
+                for mask_seed in mask_seeds:
+                    net_input = move_to_cuda(batch['net_input'])
+                    if self.stage_a_enabled:
+                        # The explicit flag prevents Stage A from ever running
+                        # in training forward passes, even when the config is
+                        # shared.
+                        net_input['run_stage_a'] = True
+                    if self.stage_a5_enabled:
+                        net_input['run_stage_a5'] = True
+                        sample_ids = []
+                        for sample_index, raw in enumerate(batch['raw']):
+                            if len(raw) < 5:
+                                raise ValueError(
+                                    'Stage A.5 requires raw sample ids at raw[4]')
+                            sample_ids.append(str(raw[4]))
+                        from models.cpl import deterministic_eval_word_mask
+                        mask = deterministic_eval_word_mask(
+                            sample_ids,
+                            batch['net_input']['words_len'],
+                            batch['net_input']['words_feat'].size(1) - 1,
+                            mask_seed,
+                            weights=batch['net_input']['weights'])
+                        net_input['eval_word_mask'] = mask.to(
+                            next(self.model.parameters()).device)
+                    current_output = self.model(epoch=epoch, **net_input)
+                    current_words_mask = current_output['words_mask'].unsqueeze(1) \
+                        .expand(len(durations), self.model.num_props, -1).contiguous().view(
+                            len(durations) * self.model.num_props, -1)
+                    current_words_id = current_output['words_id'].unsqueeze(1) \
+                        .expand(len(durations), self.model.num_props, -1).contiguous().view(
+                            len(durations) * self.model.num_props, -1)
+                    current_nll, _ = cal_nll_loss(
+                        current_output['words_logit'], current_words_id,
+                        current_words_mask)
+                    parent_nlls.append(
+                        current_nll.view(len(durations), self.model.num_props))
+                    # Candidate scores and geometry are already materialized by
+                    # this point.  Do not keep any vocabulary-sized logits for
+                    # the other mask seeds in memory.
+                    for key in ('words_logit', 'neg_words_logit_1',
+                                'neg_words_logit_2', 'ref_words_logit'):
+                        if key in current_output:
+                            current_output[key] = None
+                    outputs.append(current_output)
+                output = outputs[0]
                 bsz = len(durations)
                 num_props = self.model.num_props
                 k = min(num_props, 5)
@@ -261,12 +323,16 @@ class MainRunner:
                     .expand(bsz, num_props, -1).contiguous().view(
                         bsz * num_props, -1)
 
-                nll_loss, acc = cal_nll_loss(
-                    output['words_logit'], words_id, words_mask)
-                parent_nll = nll_loss.view(bsz, num_props)
+                parent_nll_stack = torch.stack(parent_nlls, dim=0)
+                parent_nll = parent_nll_stack.mean(dim=0)
+                parent_nll_std = parent_nll_stack.std(
+                    dim=0, unbiased=False) if len(outputs) > 1 else torch.zeros_like(parent_nll)
                 event_score = output.get('event_score')
                 if event_score is not None:
-                    event_score = event_score.view(bsz, num_props)
+                    event_scores = torch.stack([
+                        current_output['event_score'].view(bsz, num_props)
+                        for current_output in outputs], dim=0)
+                    event_score = event_scores.mean(dim=0)
                     parent_score = parent_nll - (
                         self.inference_event_weight * event_score)
                 else:
@@ -370,6 +436,79 @@ class MainRunner:
                                 stage_a_diagnostics_logger[name].update(
                                     value, count)
 
+                if self.stage_a5_enabled:
+                    required_a5 = (
+                        'stage_a_candidate_start',
+                        'stage_a_candidate_end',
+                        'stage_a_candidate_valid',
+                        'stage_a_candidate_nll',
+                        'stage_a_candidate_shell_nll',
+                        'stage_a_candidate_boundary_confidence',
+                    )
+                    for current_output in outputs:
+                        missing_a5 = [
+                            name for name in required_a5
+                            if name not in current_output]
+                        if missing_a5:
+                            raise RuntimeError(
+                                'Stage A.5 model output is missing: {}'.format(
+                                    ', '.join(missing_a5)))
+                    candidate_nll_stack = torch.stack([
+                        current_output['stage_a_candidate_nll'].detach()
+                        for current_output in outputs], dim=0)
+                    shell_nll_stack = torch.stack([
+                        current_output['stage_a_candidate_shell_nll'].detach()
+                        for current_output in outputs], dim=0)
+                    candidate_start = output[
+                        'stage_a_candidate_start'].detach().cpu().numpy()
+                    candidate_end = output[
+                        'stage_a_candidate_end'].detach().cpu().numpy()
+                    candidate_valid = output[
+                        'stage_a_candidate_valid'].detach().cpu().numpy()
+                    boundary_confidence = output[
+                        'stage_a_candidate_boundary_confidence'].detach().cpu().numpy()
+                    candidate_nll_np = candidate_nll_stack.cpu().numpy()
+                    shell_nll_np = shell_nll_stack.cpu().numpy()
+                    selector_config = self.stage_a5_config
+                    refined_props, selector_scores, selected_candidate, reasons = (
+                        select_stage_a5_candidates(
+                            candidate_start, candidate_end, candidate_valid,
+                            candidate_nll_np.mean(axis=0),
+                            candidate_nll_np.std(axis=0),
+                            shell_nll_np.mean(axis=0),
+                            shell_nll_np.std(axis=0),
+                            boundary_confidence, selector_config,
+                            contrast_mean=(shell_nll_np - candidate_nll_np).mean(axis=0),
+                            contrast_std=(shell_nll_np - candidate_nll_np).std(axis=0),
+                        ))
+                    selected_nll = np.take_along_axis(
+                        candidate_nll_np.mean(axis=0),
+                        selected_candidate[..., None], axis=-1)[..., 0]
+                    stage5_score = selected_nll - self.inference_event_weight * (
+                        event_score.detach().cpu().numpy()
+                        if event_score is not None else 0.0)
+                    stage5_idx = np.argsort(stage5_score, axis=-1)
+                    stage5_sorted_props = np.take_along_axis(
+                        refined_props,
+                        stage5_idx[..., None].repeat(2, axis=-1), axis=1)
+                    _update_metric_logger(
+                        stage_a5_metric_logger,
+                        stage5_sorted_props,
+                        np.take_along_axis(stage5_score, stage5_idx, axis=1),
+                        gt, self.selection_strategy,
+                        self.selection_temperature,
+                        self.args['dataset']['dataset'], k)
+                    a5_diagnostics = calculate_stage_a5_diagnostics(
+                        raw_props=raw_props,
+                        refined_props=refined_props,
+                        selected_candidate=selected_candidate,
+                        reasons=reasons,
+                        candidate_nll=candidate_nll_np.mean(axis=0),
+                        shell_nll=shell_nll_np.mean(axis=0),
+                        gt=gt)
+                    for name, (value, count) in a5_diagnostics.items():
+                        stage_a5_diagnostics_logger[name].update(value, count)
+
         msg = '|'.join([' {} {:.4f} '.format(k, v.avg)
                         for k, v in metrics_logger.items()])
         info('Baseline({}): |{}|'.format(split, msg))
@@ -391,6 +530,20 @@ class MainRunner:
                 if v.count > 0])
             info('StageA diagnostics({}, epsilon={:.2f}): |{}|'.format(
                 split, self.stage_a_max_nll_increase, stage_diagnostic_msg))
+        if self.stage_a5_enabled:
+            stage5_msg = '|'.join([
+                ' {} {:.4f} '.format(k, v.avg)
+                for k, v in stage_a5_metric_logger.items()])
+            info('StageA5({}, selector={}): |{}|'.format(
+                split, self.stage_a5_config.get('selector',
+                                                'counterfactual_gated'),
+                stage5_msg))
+            stage5_diagnostic_msg = '|'.join([
+                ' {} {:.4f} '.format(k, v.avg)
+                for k, v in stage_a5_diagnostics_logger.items()
+                if v.count > 0])
+            info('StageA5 diagnostics({}): |{}|'.format(
+                split, stage5_diagnostic_msg))
         # The unprefixed result remains the baseline result, so enabling
         # report-only Stage A cannot affect checkpoint selection.
         return metrics_logger
@@ -818,6 +971,78 @@ def calculate_stage_a_diagnostics(
             result['IoU@0.3'], group_count)
         diagnostics['stage_a_gt_{}_R5_IoU@0.5'.format(group)] = (
             result['IoU@0.5'], group_count)
+    return diagnostics
+
+
+def calculate_stage_a5_diagnostics(
+        raw_props, refined_props, selected_candidate, reasons,
+        candidate_nll, shell_nll, gt):
+    """Return paired online diagnostics for one Stage-A.5 batch.
+
+    GT is accepted only by this reporting function.  The selector itself is
+    kept in ``runners.stage_a5`` and has no GT-shaped argument.
+    """
+    raw_props = np.asarray(raw_props)
+    refined_props = np.asarray(refined_props)
+    selected_candidate = np.asarray(selected_candidate)
+    reasons = np.asarray(reasons)
+    candidate_nll = np.asarray(candidate_nll)
+    shell_nll = np.asarray(shell_nll)
+    gt = np.asarray(gt)
+    if raw_props.shape != refined_props.shape or raw_props.ndim != 3 or \
+            raw_props.shape[-1] != 2:
+        raise ValueError('raw/refined props must have shape [B, N, 2]')
+    batch_size, num_props, _ = raw_props.shape
+    expected = (batch_size, num_props)
+    if selected_candidate.shape != expected or reasons.shape != expected:
+        raise ValueError('Stage-A.5 selection arrays have invalid shape')
+    if candidate_nll.shape != (batch_size, num_props, 7) or \
+            shell_nll.shape != candidate_nll.shape:
+        raise ValueError('Stage-A.5 score arrays have invalid shape')
+    if gt.shape != (batch_size, 2):
+        raise ValueError('ground truth must have shape [B, 2]')
+
+    original_iou = calculate_IoU_batch(
+        (raw_props[..., 0], raw_props[..., 1]),
+        (np.broadcast_to(gt[:, 0, None], (batch_size, num_props)),
+         np.broadcast_to(gt[:, 1, None], (batch_size, num_props))))
+    refined_iou = calculate_IoU_batch(
+        (refined_props[..., 0], refined_props[..., 1]),
+        (np.broadcast_to(gt[:, 0, None], (batch_size, num_props)),
+         np.broadcast_to(gt[:, 1, None], (batch_size, num_props))))
+    delta_iou = refined_iou - original_iou
+    changed = selected_candidate != 0
+    helpful = changed & (delta_iou > 0.01)
+    harmful = changed & (delta_iou < -0.01)
+    neutral = changed & ~(helpful | harmful)
+    changed_count = max(int(changed.sum()), 1)
+    diagnostics = {
+        'stage_a5_changed_fraction': (changed.mean(), batch_size * num_props),
+        'stage_a5_mean_width_before': (
+            (raw_props[..., 1] - raw_props[..., 0]).mean(), batch_size * num_props),
+        'stage_a5_mean_width_after': (
+            (refined_props[..., 1] - refined_props[..., 0]).mean(),
+            batch_size * num_props),
+        'stage_a5_helpful_fraction': (
+            helpful.sum() / changed_count, batch_size * num_props),
+        'stage_a5_harmful_fraction': (
+            harmful.sum() / changed_count, batch_size * num_props),
+        'stage_a5_neutral_fraction': (
+            neutral.sum() / changed_count, batch_size * num_props),
+        'stage_a5_trim_precision': (
+            helpful.sum() / max(int((helpful | harmful).sum()), 1),
+            batch_size * num_props),
+        'stage_a5_mean_delta_iou': (
+            delta_iou[changed].mean() if changed.any() else 0.0,
+            max(int(changed.sum()), 1)),
+        'stage_a5_mean_contrast': (
+            np.nanmean((shell_nll - candidate_nll)[..., 1:]),
+            batch_size * num_props * 6),
+    }
+    reason_names = {value: key for key, value in REASON_CODES.items()}
+    for reason_code in sorted(reason_names):
+        diagnostics['stage_a5_reason_{}'.format(reason_names[reason_code])] = (
+            np.mean(reasons == reason_code), batch_size * num_props)
     return diagnostics
 
 

@@ -1,0 +1,48 @@
+{
+  "STAGE_B_GO": false,
+  "config": {
+    "accept_margin": 0.01,
+    "allowed_candidate_types": [
+      "left_near",
+      "left_strong",
+      "right_near",
+      "right_strong"
+    ],
+    "enabled": true,
+    "lambda_boundary": 0.1,
+    "lambda_contrast": 1.0,
+    "lambda_edit": 0.25,
+    "lambda_uncertainty": 0.5,
+    "max_contrast_std": 0.03,
+    "max_nll_increase": 0.0,
+    "max_relative_shift": 0.1,
+    "min_boundary_percentile": 0.7,
+    "min_contrast_margin": 0.02,
+    "min_parent_width": 0.35,
+    "min_retained_ratio": 0.6,
+    "selector": "counterfactual_gated"
+  },
+  "selection_protocol": "validation-only hierarchical Stage-A.5 scan",
+  "validation_summary": {
+    "baseline_R1_IoU@0.5": 1.0,
+    "baseline_R1_mIoU": 0.970790859042776,
+    "baseline_R5_mIoU": 0.970790859042776,
+    "bucket_drops": {
+      "medium_long": {
+        "R1_mIoU": 0.0,
+        "R5_mIoU": 0.0
+      }
+    },
+    "changed_fraction": 0.0,
+    "harmful_fraction": 0.0,
+    "helpful_fraction": 0.0,
+    "long_R5_penalty": 0.0,
+    "objective": 0.0,
+    "phase": "geometry",
+    "stage_R1_IoU@0.5": 1.0,
+    "stage_R1_mIoU": 0.970790859042776,
+    "stage_R5_mIoU": 0.970790859042776,
+    "stage_b_go": false,
+    "trim_precision": 0.0
+  }
+}

@@ -1,3 +1,4 @@
+import hashlib
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,6 +11,59 @@ from models.modules import (
     LowRankEventDisentangler,
 )
 import math
+
+
+def deterministic_eval_word_mask(sample_ids, words_len, max_words,
+                                  eval_mask_seed, weights=None,
+                                  device=None):
+    """Build a stable weighted word-mask override for evaluation.
+
+    The seed is derived from the sample id and the requested mask seed, so the
+    result is independent of batch order, DataLoader workers, and process-wide
+    NumPy RNG state.  Position zero is the learned start token and is never
+    masked; positions ``1..word_len`` are the only eligible query words.
+    """
+    if len(sample_ids) != len(words_len):
+        raise ValueError('sample_ids and words_len must have equal length')
+    if int(max_words) < 0:
+        raise ValueError('max_words must be non-negative')
+    if weights is not None and (not torch.is_tensor(weights) or
+                                weights.ndim != 2 or
+                                weights.shape[0] != len(sample_ids)):
+        raise ValueError('weights must have shape [batch, max_words]')
+    result = torch.zeros(
+        (len(sample_ids), int(max_words) + 1), dtype=torch.bool,
+        device=device if device is not None else (
+            weights.device if torch.is_tensor(weights) else None))
+    for row, (sample_id, length_value) in enumerate(zip(sample_ids, words_len)):
+        length = int(length_value)
+        if length < 0 or length > max_words:
+            raise ValueError('word length is outside max_words')
+        if length == 0:
+            continue
+        count = max(length // 3, 1)
+        digest = hashlib.sha256(
+            '{}:{}'.format(sample_id, int(eval_mask_seed)).encode('utf8')
+        ).digest()
+        sample_seed = int.from_bytes(digest[:8], 'little')
+        rng = np.random.default_rng(sample_seed)
+        probabilities = None
+        if weights is not None:
+            probabilities = weights[row, :length].detach().cpu().numpy()
+            probabilities = np.asarray(probabilities, dtype=np.float64)
+            if (not np.isfinite(probabilities).all() or
+                    np.any(probabilities < 0) or
+                    probabilities.sum() <= 0):
+                probabilities = None
+            else:
+                probabilities = probabilities / probabilities.sum()
+        choices = rng.choice(
+            np.arange(1, length + 1), size=count, replace=False,
+            p=probabilities)
+        result[row, torch.from_numpy(np.asarray(choices, dtype=np.int64)).to(
+            result.device)] = True
+    return result
+
 
 class CPL(nn.Module):
     def __init__(self, config):
@@ -32,6 +86,12 @@ class CPL(nn.Module):
         stage_a_config = config.get('event_boundary_refinement', {})
         self.stage_a_config = dict(stage_a_config)
         self.stage_a_enabled = bool(stage_a_config.get('enabled', False))
+        self.stage_a5_config = dict(stage_a_config.get('stage_a5', {}))
+        self.stage_a5_enabled = bool(self.stage_a5_config.get('enabled', False))
+        self.stage_a5_score_shell = bool(
+            self.stage_a5_config.get('score_shell', True))
+        if self.stage_a5_enabled and not self.stage_a_enabled:
+            raise ValueError('Stage A.5 requires Stage A to be enabled')
         self.stage_a_refiner = None
         if self.stage_a_enabled:
             candidate_policy = stage_a_config.get(
@@ -112,7 +172,11 @@ class CPL(nn.Module):
 
     def forward(self, frames_feat, frames_len, words_id, words_feat, words_len, weights, **kwargs):
         bsz, n_frames, _ = frames_feat.shape
-        run_stage_a = bool(kwargs.get('run_stage_a', False))
+        run_stage_a5 = bool(kwargs.get('run_stage_a5', False))
+        if run_stage_a5 and not self.stage_a5_enabled:
+            raise RuntimeError(
+                'run_stage_a5=True but event_boundary_refinement.stage_a5 is disabled')
+        run_stage_a = bool(kwargs.get('run_stage_a', False)) or run_stage_a5
         if run_stage_a:
             if not self.stage_a_enabled:
                 raise RuntimeError(
@@ -174,7 +238,9 @@ class CPL(nn.Module):
             .expand(bsz, self.num_props, -1).contiguous().view(bsz*self.num_props, -1)
 
         # semantic completion
-        words_feat, masked_words = self._mask_words(words_feat, words_len, weights=weights)
+        words_feat, masked_words = self._mask_words(
+            words_feat, words_len, weights=weights,
+            mask_override=kwargs.get('eval_word_mask'))
         masked_query_base = words_feat + words_pos
         masked_query_base = masked_query_base[:, :-1]
         query_mask_base = words_mask[:, :-1]
@@ -264,10 +330,13 @@ class CPL(nn.Module):
                 center_2d.device)
             boundary_mask = kwargs['event_boundary_mask'].to(
                 center_2d.device).bool()
-            candidate_start, candidate_end, candidate_valid, _ = (
+            candidate_start, candidate_end, candidate_valid, candidate_type, \
+                candidate_boundary_confidence, candidate_left_score, \
+                candidate_right_score = (
                 self.stage_a_refiner.build_candidates(
                     center_2d, width_2d, boundary_positions, boundary_scores,
-                    boundary_mask))
+                    boundary_mask, return_boundary_confidence=True,
+                    return_boundary_scores=True))
             candidate_masks, mask_valid = (
                 self.stage_a_refiner.build_candidate_masks_with_validity(
                     original_mask, candidate_start, candidate_end,
@@ -291,7 +360,43 @@ class CPL(nn.Module):
                 'stage_a_candidate_end': candidate_end,
                 'stage_a_candidate_valid': candidate_valid,
                 'stage_a_candidate_nll': candidate_nll,
+                'stage_a_candidate_type': candidate_type,
+                'stage_a_candidate_boundary_confidence':
+                    candidate_boundary_confidence,
+                'stage_a_candidate_left_boundary_score': candidate_left_score,
+                'stage_a_candidate_right_boundary_score': candidate_right_score,
             }
+            if run_stage_a5 and self.stage_a5_score_shell:
+                shell_masks, shell_valid = (
+                    self.stage_a_refiner.build_shell_masks_with_validity(
+                        original_mask, candidate_start, candidate_end,
+                        candidate_valid))
+                candidate_shell_nll = self.score_stage_a_candidates(
+                    frames_feat=frames_feat,
+                    frames_mask=frames_mask,
+                    masked_query_base=masked_query_base,
+                    query_mask_base=query_mask_base,
+                    words_id=words_id,
+                    original_masks=original_mask,
+                    candidate_masks=shell_masks,
+                    candidate_valid=shell_valid,
+                    original_nll=original_nll,
+                    chunk_size=self.stage_a_decode_chunk_size,
+                    include_original=False)
+                stage_a_output.update({
+                    'stage_a_candidate_shell_nll': candidate_shell_nll,
+                    'stage_a_candidate_contrast': (
+                        candidate_shell_nll - candidate_nll),
+                })
+            elif run_stage_a5:
+                # Keep a shape-stable diagnostic output while ensuring that a
+                # score_shell=false run does not invoke the shell decoder.
+                no_shell = original_nll.new_full(
+                    (bsz, self.num_props, 7), float('inf'))
+                stage_a_output.update({
+                    'stage_a_candidate_shell_nll': no_shell,
+                    'stage_a_candidate_contrast': no_shell.clone(),
+                })
 
         event_pos_feat = None
         event_neg_feat = None
@@ -428,7 +533,8 @@ class CPL(nn.Module):
     def score_stage_a_candidates(
             self, frames_feat, frames_mask, masked_query_base,
             query_mask_base, words_id, original_masks, candidate_masks,
-            candidate_valid, original_nll, chunk_size):
+            candidate_valid, original_nll, chunk_size,
+            include_original=True):
         """Decode valid trim candidates in bounded chunks.
 
         Candidate zero reuses ``original_nll``.  Only the visual/query rows
@@ -447,7 +553,8 @@ class CPL(nn.Module):
             raise ValueError('frames_mask shape does not match candidate masks')
         if original_masks.shape != (batch_size, num_props, sequence_length):
             raise ValueError('original_masks shape does not match candidates')
-        if not torch.equal(candidate_masks[..., 0, :], original_masks):
+        if include_original and not torch.equal(
+                candidate_masks[..., 0, :], original_masks):
             raise ValueError('candidate zero mask must equal original mask')
         if candidate_valid.shape != (batch_size, num_props, 7):
             raise ValueError('candidate_valid shape does not match masks')
@@ -460,14 +567,20 @@ class CPL(nn.Module):
 
         candidate_nll = original_nll.new_full(
             (batch_size, num_props, 7), float('inf'))
-        candidate_nll[..., 0] = original_nll
-        valid_rows = candidate_valid[..., 1:].nonzero(as_tuple=False)
-        # Columns are batch, proposal, candidate-1.
+        if include_original:
+            candidate_nll[..., 0] = original_nll
+            valid_rows = candidate_valid[..., 1:].nonzero(as_tuple=False)
+            candidate_offset = 1
+        else:
+            valid_rows = candidate_valid.nonzero(as_tuple=False)
+            candidate_offset = 0
+        # Columns are batch, proposal, candidate for shell masks, and
+        # candidate-1 for the original/trim mask path.
         for chunk_start in range(0, valid_rows.size(0), chunk_size):
             rows = valid_rows[chunk_start:chunk_start + chunk_size]
             batch_index = rows[:, 0]
             proposal_index = rows[:, 1]
-            candidate_index = rows[:, 2] + 1
+            candidate_index = rows[:, 2] + candidate_offset
             visual = frames_feat[batch_index]
             visual_mask = frames_mask[batch_index]
             query = masked_query_base[batch_index]
@@ -531,9 +644,35 @@ class CPL(nn.Module):
 
         return left_neg_weight, right_neg_weight
 
-    def _mask_words(self, words_feat, words_len, weights=None):
+    def _mask_words(self, words_feat, words_len, weights=None,
+                    mask_override=None):
         token = self.mask_vec.to(words_feat.device).unsqueeze(0).unsqueeze(0)
         token = self.word_fc(token)
+
+        if mask_override is not None:
+            if self.training:
+                raise ValueError('mask_override is only valid during evaluation')
+            if not torch.is_tensor(mask_override) or mask_override.shape != (
+                    words_feat.size(0), words_feat.size(1)):
+                raise ValueError(
+                    'mask_override must have shape [batch, max_words + 1]')
+            masked_words = mask_override.to(
+                device=words_feat.device, dtype=torch.bool).clone()
+            for i, length in enumerate(words_len):
+                length = int(length)
+                if torch.any(masked_words[i, :1]) or torch.any(
+                        masked_words[i, length + 1:]):
+                    raise ValueError('mask_override contains an illegal position')
+                expected = max(length // 3, 1) if length > 0 else 0
+                if int(masked_words[i].sum()) != expected:
+                    raise ValueError('mask_override has an incorrect mask count')
+            masked_words = masked_words.unsqueeze(-1)
+            masked_words_vec = words_feat.new_zeros(*words_feat.size()) + token
+            masked_words_vec = masked_words_vec.masked_fill_(
+                masked_words == 0, 0)
+            words_feat1 = words_feat.masked_fill(
+                masked_words == 1, 0) + masked_words_vec
+            return words_feat1, masked_words
 
         masked_words = []
         for i, l in enumerate(words_len):
