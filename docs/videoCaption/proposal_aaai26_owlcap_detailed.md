@@ -598,7 +598,7 @@ def build_proposal_groups(
     offsets: tuple = (0.05,),
     min_width: float = 0.02,
     dedup_eps: float = 1e-4,
-) -> tuple[torch.Tensor, torch.Tensor]:    # spans [B,N,R,2], valid [B,N,R]
+) -> Tuple[torch.Tensor, torch.Tensor]:   # spans [B,N,R,2], valid [B,N,R]
     ...
 ```
 
@@ -667,6 +667,19 @@ quality soft winner omega: stop-gradient
 
 这使损失主要移动候选边界，而不是把所有 frame/unit similarity 人为抬高。该行为应由配置 `span_loss_detach_evidence=true` 控制。
 
+实现时不能直接对已经算好的 `C/H` 调用 `.detach()`，否则 span 的梯度也会一起消失。`BPSEScorer` 应共享同一份 live soft-box membership，额外计算一份 span-optimization view：
+
+```text
+coverage_evidence.detach() + live soft_box
+    -> span_completeness [B,N]
+
+event_explainability.detach() + event_strength.detach() + live soft_box
+    -> span_purity [B,N]
+    -> span_equivalence [B,N]
+```
+
+`bpse_loss()` 的 `L_cov/L_equiv` 使用这组 `span_*` 输出；质量头与伪排序仍使用正常的 `completeness/purity/equivalence`。这样 detach 的边界清晰且可单测。
+
 ### 4.13 用 BPSE 替代 hard-min routing
 
 基础候选的质量权重为：
@@ -725,6 +738,8 @@ idx = selection_cost.argsort(dim=-1)
 
 ## 5. 推荐模块接口
 
+现有缓存文件表明项目常在 Python 3.8 环境运行。以下接口使用 `typing.Dict/Optional/Tuple/List`，实现文件应显式导入这些类型；不要直接使用 Python 3.10 才支持的 `Tensor | None`。若不需要类型标注，也可省略返回类型，但不得因此改变接口。
+
 ### 5.1 `QueryUnitPooler`
 
 ```python
@@ -754,7 +769,7 @@ class SalientEventTokenizer(nn.Module):
         self,
         visual_states: torch.Tensor,  # [B,T,D]
         frame_mask: torch.Tensor,     # [B,T]
-    ) -> dict[str, torch.Tensor]:
+    ) -> Dict[str, torch.Tensor]:
         """Return event_tokens, event_strength, event_pool_weights,
         event_valid_mask."""
 ```
@@ -794,7 +809,7 @@ class BPSEScorer(nn.Module):
         base_spans: torch.Tensor,          # [B,N,2]
         build_perturbations: bool = False,
         perturb_offsets: tuple = (0.05,),
-    ) -> dict[str, torch.Tensor]:
+    ) -> Dict[str, torch.Tensor]:
         ...
 ```
 
@@ -809,6 +824,9 @@ equivalence                [B,N]
 inside_shell_contrast      [B,N]
 event_mass                 [B,N]
 unit_coverage              [B,N,U]
+span_completeness          [B,N]
+span_purity                [B,N]
+span_equivalence           [B,N]
 group_quality_logits       [B,N,R] or None
 group_completeness         [B,N,R] or None
 group_purity               [B,N,R] or None
@@ -824,16 +842,18 @@ group_spans                [B,N,R,2] or None
 ```python
 def bpse_loss(
     words_logit: torch.Tensor,
-    bpse_quality_logits: torch.Tensor | None = None,        # [B,N]
-    bpse_completeness: torch.Tensor | None = None,          # [B,N]
-    bpse_purity: torch.Tensor | None = None,                # [B,N]
-    bpse_equivalence: torch.Tensor | None = None,           # [B,N]
-    bpse_group_quality_logits: torch.Tensor | None = None,  # [B,N,R]
-    bpse_group_equivalence: torch.Tensor | None = None,     # [B,N,R]
-    bpse_group_valid_mask: torch.Tensor | None = None,      # [B,N,R]
-    bpse_group_spans: torch.Tensor | None = None,           # [B,N,R,2]
+    bpse_quality_logits: Optional[torch.Tensor] = None,        # [B,N]
+    bpse_completeness: Optional[torch.Tensor] = None,          # [B,N]
+    bpse_purity: Optional[torch.Tensor] = None,                # [B,N]
+    bpse_equivalence: Optional[torch.Tensor] = None,           # [B,N]
+    bpse_span_completeness: Optional[torch.Tensor] = None,     # [B,N]
+    bpse_span_equivalence: Optional[torch.Tensor] = None,      # [B,N]
+    bpse_group_quality_logits: Optional[torch.Tensor] = None,  # [B,N,R]
+    bpse_group_equivalence: Optional[torch.Tensor] = None,     # [B,N,R]
+    bpse_group_valid_mask: Optional[torch.Tensor] = None,      # [B,N,R]
+    bpse_group_spans: Optional[torch.Tensor] = None,           # [B,N,R,2]
     **kwargs,
-) -> tuple[torch.Tensor, dict[str, float]]:
+) -> Tuple[torch.Tensor, Dict[str, float]]:
     ...
 ```
 
@@ -844,14 +864,14 @@ def bpse_loss(
 ```python
 def rec_loss(
     ...,
-    proposal_weights: torch.Tensor | None = None,  # [B,N], detached
+    proposal_weights: Optional[torch.Tensor] = None,  # [B,N], detached
     **kwargs,
 ):
     ...
 
 def ivc_loss(
     ...,
-    proposal_weights: torch.Tensor | None = None,  # [B,N], detached
+    proposal_weights: Optional[torch.Tensor] = None,  # [B,N], detached
     **kwargs,
 ):
     ...
@@ -1018,11 +1038,11 @@ rg -n "import cpl_lrev|from cpl_lrev|\.\./cpl_lrev|sys\.path.*cpl_lrev" .
 
 ```python
 def build_query_units(
-    words: list[str],
-    pos_tags: list[str],
+    words: List[str],
+    pos_tags: List[str],
     max_units: int,
     include_whole_query: bool = True,
-) -> dict[str, np.ndarray]:
+) -> Dict[str, np.ndarray]:
     ...
 ```
 
@@ -1154,6 +1174,9 @@ bpse_purity
 bpse_equivalence
 bpse_inside_shell_contrast
 bpse_event_mass
+bpse_span_completeness
+bpse_span_purity
+bpse_span_equivalence
 bpse_group_quality_logits
 bpse_group_equivalence
 bpse_group_valid_mask
@@ -1201,6 +1224,8 @@ bpse_mean_route_entropy
 #### Import 和训练
 
 从 `models.loss` import `bpse_loss`。在四个现有 loss 后计算第五项。根据 epoch 和 `output['bpse_schedule']` 决定是否把 `bpse_routing_weights` 传给 `rec_loss/ivc_loss`。
+
+新增 `MainRunner._configure_bpse_trainability(epoch)`：在 quality warm-up epoch 内只让 `model.bpse_scorer.quality_head` 可训练，之后恢复 baseline 参数。注意 `_build_optimizer()` 当前只收集构造时 `requires_grad=true` 的参数，因此所有参数在 optimizer 构建时先保持可训练，再在每个 epoch 开头临时切换 `requires_grad`；否则后续解冻的参数不会位于 optimizer 中。
 
 推荐先得到 routing：
 
@@ -1319,6 +1344,8 @@ GT 只在 `eval()` 的 NumPy 诊断中使用，不回传模型。
 | `quality_hidden_size` | int | 64 | MLP hidden |
 | `quality_dropout` | float | 0.1 | MLP dropout |
 | `quality_detach_inputs` | bool | true | 防止伪目标改写证据 |
+| `quality_warmup_epochs` | int | 2 | 仅训练 quality head 的 epoch 数 |
+| `freeze_baseline_during_quality_warmup` | bool | true | warm-up 时冻结 baseline 参数 |
 | `perturb_offsets` | list[float] | `[0.05]` | 训练扰动幅度 |
 | `min_perturb_width` | float | 0.02 | 最小有效扰动 span |
 | `routing_start_epoch` | int | 3 | BPSE 接管 rec/ivc 的起始 epoch |
@@ -1374,6 +1401,8 @@ Model：
   "quality_hidden_size": 64,
   "quality_dropout": 0.1,
   "quality_detach_inputs": true,
+  "quality_warmup_epochs": 2,
+  "freeze_baseline_during_quality_warmup": true,
   "perturb_offsets": [0.05],
   "min_perturb_width": 0.02,
   "routing_start_epoch": 3,
@@ -1423,6 +1452,8 @@ Loss：
 - 只启用 `L_rank + L_abs`；
 - routing 关闭，不改变 rec/ivc winner；
 - 每 epoch 在 validation 比较 BPSE 与 NLL 的固定 proposal 排序。
+
+具体由 runner 在每个 epoch 开始调用 `_configure_bpse_trainability(epoch)`。optimizer 构建时不提前冻结 baseline；warm-up 期间仅通过 `requires_grad` 阻止梯度，结束后恢复。eval 前不需要改变 `requires_grad`，但必须调用 `model.eval()`。
 
 如果此阶段 proposal set 固定而 BPSE R@1 没有改善，说明 C/P 定义或质量头无效，不应急于联合训练。
 
@@ -1638,6 +1669,7 @@ bpse_routing_weights     [B,N]
 - `quality_logits=[0,2,1]` 时选择第二个候选；
 - 排序后 center、width、C/P/H 使用同一 index；
 - selector 为 BPSE 但输出不存在时明确报错；
+- `MainRunner.__init__()` 的合法策略集合包含 `bpse`，且 `select_proposal_by_strategy()` 对已经按 BPSE cost 排序的候选与 `nll` 一样返回索引 0；
 - NLL/semantic vote 的旧测试继续通过；
 - ActivityNet N=5 和 Charades N=8 都工作。
 
