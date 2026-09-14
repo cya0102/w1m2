@@ -7,11 +7,7 @@ from models.transformer import DualTransformer
 from models.modules import (
     GaussianMixtureProposalGenerator,
     LowRankEventDisentangler,
-)
-from models.modules.qcec import (
-    QCECProposalAdapter,
-    QueryConditionedCoherentEventClusters,
-    snap_proposal_boundaries,
+    BPSEScorer,
 )
 import math
 
@@ -25,6 +21,18 @@ class CPL(nn.Module):
         self.num_props = config['num_props']
         self.max_epoch = config['max_epoch']
         self.gamma = config['gamma']
+        bpse_config = config.get('bpse', {}) or {}
+        self.use_bpse = bool(bpse_config.get('enabled', False))
+        self.bpse_route_temperature = float(
+            bpse_config.get('route_temperature', 0.2))
+        self.bpse_routing_start_epoch = int(
+            bpse_config.get('routing_start_epoch', 3))
+        self.bpse_routing_ramp_epochs = int(
+            bpse_config.get('routing_ramp_epochs', 2))
+        self.bpse_perturb_offsets = tuple(
+            bpse_config.get('perturb_offsets', [0.05]))
+        self.eval_word_mask_mode = bpse_config.get(
+            'eval_word_mask_mode', 'legacy_random')
         event_config = config.get('event_disentanglement', {})
         self.use_event_disentanglement = event_config.get('enabled', False)
         self.event_selection_temperature = event_config.get(
@@ -47,55 +55,6 @@ class CPL(nn.Module):
             raise ValueError('event disentanglement requires negative proposals')
         if self.event_selection_temperature <= 0:
             raise ValueError('event selection temperature must be positive')
-
-        qcec_config = config.get('qcec', {})
-        self.use_qcec = bool(qcec_config.get('enabled', False))
-        self.qcec_snap_enabled = bool(qcec_config.get('snap_enabled', False))
-        self.qcec_snap_radius_frames = int(
-            qcec_config.get('snap_radius_frames', 2))
-        self.qcec_snap_min_confidence = float(
-            qcec_config.get('snap_min_confidence', 0.15))
-        self.qcec_snap_min_relevance = float(
-            qcec_config.get('snap_min_relevance', 0.5))
-        self.qcec_snap_min_width = float(
-            qcec_config.get('snap_min_width', 0.01))
-        self.qcec_snap_edge_min_confidence = qcec_config.get(
-            'snap_edge_min_confidence', None)
-        if self.qcec_snap_edge_min_confidence is not None:
-            self.qcec_snap_edge_min_confidence = float(
-                self.qcec_snap_edge_min_confidence)
-        self.qcec_freeze_backbone_epochs = int(
-            qcec_config.get('freeze_backbone_epochs', 0))
-        self.qcec_return_debug_tensors = bool(
-            qcec_config.get('return_debug_tensors', False))
-        self.qcec_use_slot_prior = bool(
-            qcec_config.get('use_slot_prior', False))
-        self.qcec_num_clusters = int(qcec_config.get('num_clusters', 32))
-        self.qcec_init_seed = qcec_config.get('init_seed', None)
-        if self.qcec_init_seed is not None:
-            self.qcec_init_seed = int(self.qcec_init_seed)
-        self.qcec_prior_bias_scale = float(
-            qcec_config.get('prior_bias_scale', 0.25))
-        if self.use_qcec:
-            if self.qcec_num_clusters < self.num_props:
-                raise ValueError(
-                    'QCEC num_clusters must be at least num_props')
-            if self.qcec_num_clusters < 1:
-                raise ValueError('QCEC num_clusters must be positive')
-            if self.qcec_freeze_backbone_epochs < 0:
-                raise ValueError('QCEC freeze_backbone_epochs must be non-negative')
-            if self.qcec_prior_bias_scale < 0:
-                raise ValueError('QCEC prior_bias_scale must be non-negative')
-            if self.qcec_snap_radius_frames < 0:
-                raise ValueError('QCEC snap_radius_frames must be non-negative')
-            if self.qcec_snap_min_confidence < 0 or self.qcec_snap_min_relevance < 0:
-                raise ValueError('QCEC snap thresholds must be non-negative')
-            if self.qcec_snap_min_width < 0:
-                raise ValueError('QCEC snap_min_width must be non-negative')
-            if (self.qcec_snap_edge_min_confidence is not None
-                    and self.qcec_snap_edge_min_confidence < 0):
-                raise ValueError(
-                    'QCEC snap_edge_min_confidence must be non-negative')
 
         self.frame_fc = nn.Linear(config['frames_input_size'], config['hidden_size'])
         self.word_fc = nn.Linear(config['words_input_size'], config['hidden_size'])
@@ -126,44 +85,7 @@ class CPL(nn.Module):
         else:
             self.fc_gauss = nn.Linear(
                 config['hidden_size'], self.num_props * 2)
-
-        if self.use_qcec:
-            # The QCEC parameters have their own deterministic initialization
-            # stream.  ``fork_rng`` restores the caller's stream afterwards,
-            # so public/baseline parameters remain aligned when the baseline
-            # and QCEC variants use the same model seed.
-            def build_qcec_modules():
-                self.qcec = QueryConditionedCoherentEventClusters(
-                    hidden_size=config['hidden_size'],
-                    num_proposals=self.num_props,
-                    max_components=proposal_config.get('max_components', 5),
-                    edge_boost=qcec_config.get('edge_boost', 1.0),
-                    edge_power=qcec_config.get('edge_power', 2.0),
-                    attention_dim=qcec_config.get('attention_dim'),
-                    relevance_temperature=qcec_config.get(
-                        'relevance_temperature', 0.1),
-                    relevance_change_margin=qcec_config.get(
-                        'relevance_change_margin', 0.05),
-                    transition_threshold=qcec_config.get(
-                        'transition_threshold', 0.2),
-                    transition_temperature=qcec_config.get(
-                        'transition_temperature', 0.05),
-                    prior_bias_scale=self.qcec_prior_bias_scale,
-                    use_slot_prior=self.qcec_use_slot_prior,
-                )
-                self.qcec_adapter = QCECProposalAdapter(config['hidden_size'])
-            if self.qcec_init_seed is None:
-                build_qcec_modules()
-            else:
-                with torch.random.fork_rng(devices=[]):
-                    torch.manual_seed(self.qcec_init_seed)
-                    build_qcec_modules()
-        self._qcec_parameter_ids = set()
-        if self.use_qcec:
-            self._qcec_parameter_ids.update(
-                id(parameter) for parameter in self.qcec.parameters())
-            self._qcec_parameter_ids.update(
-                id(parameter) for parameter in self.qcec_adapter.parameters())
+ 
         self.word_pos_encoder = SinusoidalPositionalEmbedding(config['hidden_size'], 0, 20)
         if self.use_event_disentanglement:
             self.event_disentangler = LowRankEventDisentangler(
@@ -174,38 +96,44 @@ class CPL(nn.Module):
                 normalize_covariance=event_config.get(
                     'normalize_covariance', True),
             )
-        self._original_requires_grad = {
-            id(parameter): parameter.requires_grad
-            for parameter in self.parameters()
-        }
-        self.qcec_only_training = False
+        if self.use_bpse:
+            self.bpse_scorer = BPSEScorer(
+                hidden_size=config['hidden_size'],
+                max_query_units=bpse_config.get('max_query_units', 12),
+                num_event_tokens=bpse_config.get('num_event_tokens', 16),
+                box_temperature=bpse_config.get('box_temperature', 0.02),
+                coverage_pool_temperature=bpse_config.get(
+                    'coverage_pool_temperature', 0.1),
+                unit_match_temperature=bpse_config.get(
+                    'unit_match_temperature', 0.1),
+                shell_width=bpse_config.get('shell_width', 0.05),
+                quality_hidden_size=bpse_config.get(
+                    'quality_hidden_size', 64),
+                quality_dropout=bpse_config.get('quality_dropout', 0.1),
+                quality_detach_inputs=bpse_config.get(
+                    'quality_detach_inputs', True),
+                motion_saliency_weight=bpse_config.get(
+                    'motion_saliency_weight', 1.0),
+                detail_saliency_weight=bpse_config.get(
+                    'detail_saliency_weight', 0.5),
+                saliency_floor=bpse_config.get('saliency_floor', 0.1),
+                event_pool_temperature=bpse_config.get(
+                    'event_pool_temperature', 0.1),
+                min_perturb_width=bpse_config.get(
+                    'min_perturb_width', 0.02),
+                span_loss_detach_evidence=bpse_config.get(
+                    'span_loss_detach_evidence', True),
+            )
 
-    def forward(
-            self,
-            frames_feat,
-            frames_len,
-            words_id,
-            words_feat,
-            words_len,
-            weights,
-            query_role_mask=None,
-            query_role_valid=None,
-            qcec_cluster_ids=None,
-            qcec_cluster_bounds=None,
-            qcec_cluster_mask=None,
-            eval_mask_seeds=None,
-            **kwargs):
+    def forward(self, frames_feat, frames_len, words_id, words_feat, words_len, weights, **kwargs):
         bsz, n_frames, _ = frames_feat.shape
         pred_vec = self.pred_vec.view(1, 1, -1).expand(bsz, 1, -1)
         frames_feat = torch.cat([frames_feat, pred_vec], dim=1)
         frames_feat = F.dropout(frames_feat, self.dropout, self.training)
         frames_feat = self.frame_fc(frames_feat)
         frames_mask = _generate_mask(frames_feat, frames_len)
-        highres_frame_states = frames_feat[:, :n_frames]
-        highres_frame_mask = frames_mask[:, :n_frames].bool()
 
-        words_feat[:, 0] = self.start_vec.to(
-            device=words_feat.device, dtype=words_feat.dtype)
+        words_feat[:, 0] = self.start_vec.to(words_feat)
         words_pos = self.word_pos_encoder(words_feat)
         words_feat = F.dropout(words_feat, self.dropout, self.training)
         words_feat = self.word_fc(words_feat)
@@ -213,6 +141,14 @@ class CPL(nn.Module):
 
         # generate Gaussian masks
         enc_out, h = self.trans(frames_feat, frames_mask, words_feat + words_pos, words_mask, decoding=1)
+        # Keep the high-resolution states before the proposal path downsamples
+        # the video.  Visual states are intentionally pre-cross-modal for
+        # purity; grounded states and query states are used for completeness.
+        bpse_visual_states = frames_feat[:, :n_frames]
+        bpse_grounded_states = h[:, :n_frames]
+        bpse_query_states = enc_out[:, 1:]
+        bpse_frame_mask = frames_mask[:, :n_frames]
+        bpse_query_mask = words_mask[:, 1:]
         query_feat = None
         if self.use_event_disentanglement:
             # Pool contextualized query tokens (excluding the learned start
@@ -221,75 +157,17 @@ class CPL(nn.Module):
             query_feat = enc_out[:, 1:]
             query_feat = (query_feat * query_mask.unsqueeze(-1).to(query_feat.dtype)).sum(dim=1)
             query_feat = query_feat / query_mask.sum(dim=1, keepdim=True).clamp_min(1).to(query_feat.dtype)
-        base_proposal_feature = h[:, -1]
-        qcec_output = None
-        center_logit_bias = None
-        width_logit_bias = None
-        single_logit_bias = None
-        if self.use_qcec:
-            qcec_inputs = {
-                'query_role_mask': query_role_mask,
-                'query_role_valid': query_role_valid,
-                'qcec_cluster_ids': qcec_cluster_ids,
-                'qcec_cluster_bounds': qcec_cluster_bounds,
-                'qcec_cluster_mask': qcec_cluster_mask,
-            }
-            missing = [name for name, value in qcec_inputs.items()
-                       if value is None]
-            if missing:
-                raise ValueError(
-                    'QCEC is enabled but missing input(s): {}'.format(
-                        ', '.join(missing)))
-            if qcec_cluster_ids.shape != (bsz, n_frames):
-                raise ValueError(
-                    'QCEC cluster_ids must have shape [B, input_frames]')
-            if (qcec_cluster_bounds.dim() != 3
-                    or qcec_cluster_bounds.shape[0] != bsz
-                    or qcec_cluster_bounds.shape[1] != self.qcec_num_clusters
-                    or qcec_cluster_bounds.shape[2] != 2):
-                raise ValueError(
-                    'QCEC cluster_bounds do not match configured cluster count')
-            if qcec_cluster_mask.shape != (bsz, self.qcec_num_clusters):
-                raise ValueError(
-                    'QCEC cluster_mask does not match configured cluster count')
-            qcec_output = self.qcec(
-                frame_states=highres_frame_states,
-                frame_mask=highres_frame_mask,
-                query_states=enc_out[:, 1:],
-                query_mask=words_mask[:, 1:].bool(),
-                query_role_mask=query_role_mask.bool(),
-                query_role_valid=query_role_valid.bool(),
-                cluster_ids=qcec_cluster_ids.long(),
-                cluster_bounds=qcec_cluster_bounds,
-                cluster_mask=qcec_cluster_mask.bool(),
-            )
-            proposal_generator_feature = self.qcec_adapter(
-                base_proposal_feature, qcec_output['global_hint'])
-            if self.qcec_use_slot_prior:
-                center_logit_bias = qcec_output.get('center_logit_bias')
-                width_logit_bias = qcec_output.get('width_logit_bias')
-                single_logit_bias = qcec_output.get('single_logit_bias')
-        else:
-            proposal_generator_feature = base_proposal_feature
+        proposal_generator_feature = h[:, -1]
         if not self.use_gaussian_mixture:
-            gauss_logits = self.fc_gauss(proposal_generator_feature).view(
-                bsz, self.num_props, 2)
-            if single_logit_bias is not None:
-                if single_logit_bias.shape != gauss_logits.shape:
-                    raise ValueError(
-                        'QCEC single proposal bias has an invalid shape')
-                gauss_logits = gauss_logits + single_logit_bias.to(
-                    device=gauss_logits.device, dtype=gauss_logits.dtype)
-            gauss_param = torch.sigmoid(gauss_logits).view(
-                bsz * self.num_props, 2)
+            gauss_param = torch.sigmoid(
+                self.fc_gauss(proposal_generator_feature)).view(
+                    bsz * self.num_props, 2)
             gauss_center = gauss_param[:, 0]
             gauss_width = gauss_param[:, 1]
 
         # downsample for effeciency
-        props_len = max(n_frames//4, 1)
-        keep_idx = torch.linspace(
-            0, n_frames-1, steps=props_len,
-            device=frames_feat.device).long()
+        props_len = n_frames//4
+        keep_idx = torch.linspace(0, n_frames-1, steps=props_len).long()
         frames_feat = frames_feat[:, keep_idx]
         frames_mask = frames_mask[:, keep_idx]
         props_feat = frames_feat.unsqueeze(1) \
@@ -303,9 +181,7 @@ class CPL(nn.Module):
             .expand(bsz, self.num_props, -1).contiguous().view(bsz*self.num_props, -1)
 
         # semantic completion
-        words_feat, masked_words = self._mask_words(
-            words_feat, words_len, weights=weights,
-            mask_seeds=(eval_mask_seeds if not self.training else None))
+        words_feat, masked_words = self._mask_words(words_feat, words_len, weights=weights)
         words_feat = words_feat + words_pos
         words_feat = words_feat[:, :-1]
         words_mask = words_mask[:, :-1]
@@ -327,11 +203,7 @@ class CPL(nn.Module):
         if self.use_gaussian_mixture:
             flat_centers, flat_widths, flat_component_weights = (
                 self.mixture_generator.predict_components(
-                    proposal_generator_feature,
-                    props_len,
-                    center_logit_bias=center_logit_bias,
-                    width_logit_bias=width_logit_bias,
-                ))
+                    proposal_generator_feature, props_len))
             total_components = self.mixture_generator.total_components
 
             component_props_feat = frames_feat.unsqueeze(1).expand(
@@ -382,33 +254,45 @@ class CPL(nn.Module):
             gauss_weight = self.generate_gauss_weight(
                 props_len, gauss_center, gauss_width)
 
-        qcec_eval_center = None
-        qcec_eval_width = None
-        qcec_snap_start_delta = None
-        qcec_snap_end_delta = None
-        if (self.use_qcec and not self.training and self.qcec_snap_enabled):
-            with torch.no_grad():
-                qcec_eval_center, qcec_eval_width, snap_diagnostics = (
-                    snap_proposal_boundaries(
-                        gauss_center.view(bsz, self.num_props),
-                        gauss_width.view(bsz, self.num_props),
-                        qcec_cluster_bounds,
-                        qcec_output['cluster_relevance'],
-                        qcec_output['left_boundary_hint'],
-                        qcec_output['right_boundary_hint'],
-                        qcec_cluster_mask.bool(),
-                        frames_len,
-                        radius_frames=self.qcec_snap_radius_frames,
-                        min_confidence=self.qcec_snap_min_confidence,
-                        min_relevance=self.qcec_snap_min_relevance,
-                        min_width=self.qcec_snap_min_width,
-                        edge_min_confidence=(
-                            self.qcec_snap_edge_min_confidence),
-                    ))
-            qcec_snap_start_delta = snap_diagnostics['start_delta']
-            qcec_snap_end_delta = snap_diagnostics['end_delta']
-            qcec_eval_center = qcec_eval_center.reshape(-1)
-            qcec_eval_width = qcec_eval_width.reshape(-1)
+        bpse_output = {}
+        bpse_schedule = 0.0
+        bpse_routing_weights = None
+        if self.use_bpse:
+            unit_token_mask = kwargs.get('unit_token_mask')
+            unit_valid_mask = kwargs.get('unit_valid_mask')
+            unit_weights = kwargs.get('unit_weights')
+            if unit_token_mask is None or unit_valid_mask is None or unit_weights is None:
+                raise ValueError(
+                    'BPSE requires unit_token_mask [B,U,W], unit_valid_mask '
+                    '[B,U], and unit_weights [B,U]')
+            center_bn = gauss_center.view(bsz, self.num_props)
+            width_bn = gauss_width.view(bsz, self.num_props)
+            base_spans = torch.stack([
+                (center_bn - width_bn / 2).clamp(0, 1),
+                (center_bn + width_bn / 2).clamp(0, 1),
+            ], dim=-1)
+            bpse_output = self.bpse_scorer(
+                visual_states=bpse_visual_states,
+                grounded_states=bpse_grounded_states,
+                frame_mask=bpse_frame_mask.bool(),
+                query_states=bpse_query_states,
+                query_mask=bpse_query_mask.bool(),
+                unit_token_mask=unit_token_mask,
+                unit_valid_mask=unit_valid_mask.bool(),
+                unit_weights=unit_weights,
+                base_spans=base_spans,
+                build_perturbations=self.training,
+                perturb_offsets=self.bpse_perturb_offsets,
+            )
+            bpse_schedule = self.bpse_routing_schedule(kwargs.get('epoch', 0))
+            quality_routing = torch.softmax(
+                bpse_output['quality_logits'] /
+                max(self.bpse_route_temperature, 1e-6), dim=-1).detach()
+            uniform_routing = torch.full_like(
+                quality_routing, 1.0 / float(self.num_props))
+            bpse_routing_weights = (
+                (1.0 - bpse_schedule) * uniform_routing
+                + bpse_schedule * quality_routing).detach()
 
         pos_weight = gauss_weight/gauss_weight.max(dim=-1, keepdim=True)[0]
         _, h, attn_weight = self.trans(props_feat, props_mask, words_feat1, words_mask1, decoding=2, gauss_weight=pos_weight, need_weight=True)
@@ -445,9 +329,7 @@ class CPL(nn.Module):
                 event_pos_feat, event_neg_feat, event_vector = self.event_disentangler(
                     event_props_feat, props_mask, pos_weight, negative_weights,
                     event_selection_weights,
-                    update_subspace=(
-                        self.training and event_schedule > 0
-                        and not self.qcec_only_training))
+                    update_subspace=self.training and event_schedule > 0)
 
                 event_direction = F.normalize(event_vector, dim=-1)
                 positive_score = F.cosine_similarity(
@@ -476,7 +358,7 @@ class CPL(nn.Module):
             neg_words_logit_2 = None
             ref_words_logit = None
 
-        output = {
+        return {
             'neg_words_logit_1': neg_words_logit_1,
             'neg_words_logit_2': neg_words_logit_2,
             'ref_words_logit': ref_words_logit,
@@ -509,60 +391,42 @@ class CPL(nn.Module):
             'event_smallest_selected_eigenvalue': float(
                 self.event_disentangler.smallest_selected_eigenvalue.item())
             if self.use_event_disentanglement else 0.0,
-            'qcec_transition_positions': (
-                qcec_output['transition_positions']
-                if qcec_output is not None else None),
-            'qcec_transition_mask': (
-                qcec_output['transition_mask']
-                if qcec_output is not None else None),
-            'qcec_transition_score': (
-                qcec_output['transition_score']
-                if qcec_output is not None else None),
-            'qcec_barrier_lr': (
-                qcec_output['barrier_lr']
-                if qcec_output is not None else None),
-            'qcec_barrier_rl': (
-                qcec_output['barrier_rl']
-                if qcec_output is not None else None),
-            'qcec_cluster_relevance': (
-                qcec_output['cluster_relevance']
-                if qcec_output is not None else None),
-            'qcec_left_boundary_hint': (
-                qcec_output['left_boundary_hint']
-                if qcec_output is not None else None),
-            'qcec_right_boundary_hint': (
-                qcec_output['right_boundary_hint']
-                if qcec_output is not None else None),
-            'qcec_cluster_bounds': (
-                qcec_cluster_bounds if qcec_output is not None else None),
-            'qcec_cluster_mask': (
-                qcec_cluster_mask if qcec_output is not None else None),
-            'qcec_eval_center': qcec_eval_center,
-            'qcec_eval_width': qcec_eval_width,
-            'qcec_snap_start_delta': qcec_snap_start_delta,
-            'qcec_snap_end_delta': qcec_snap_end_delta,
+            'bpse_quality_logits': bpse_output.get('quality_logits'),
+            'bpse_quality_probs': bpse_output.get('quality_probs'),
+            'bpse_completeness': bpse_output.get('completeness'),
+            'bpse_purity': bpse_output.get('purity'),
+            'bpse_equivalence': bpse_output.get('equivalence'),
+            'bpse_inside_shell_contrast': bpse_output.get(
+                'inside_shell_contrast'),
+            'bpse_event_mass': bpse_output.get('event_mass'),
+            'bpse_unit_coverage': bpse_output.get('unit_coverage'),
+            'bpse_span_completeness': bpse_output.get('span_completeness'),
+            'bpse_span_purity': bpse_output.get('span_purity'),
+            'bpse_span_equivalence': bpse_output.get('span_equivalence'),
+            'bpse_group_quality_logits': bpse_output.get(
+                'group_quality_logits'),
+            'bpse_group_completeness': bpse_output.get('group_completeness'),
+            'bpse_group_purity': bpse_output.get('group_purity'),
+            'bpse_group_equivalence': bpse_output.get('group_equivalence'),
+            'bpse_group_event_mass': bpse_output.get('group_event_mass'),
+            'bpse_group_valid_mask': bpse_output.get('group_valid_mask'),
+            'bpse_group_spans': bpse_output.get('group_spans'),
+            'bpse_routing_weights': bpse_routing_weights,
+            'bpse_schedule': float(bpse_schedule),
         }
-        if self.use_qcec and self.qcec_return_debug_tensors:
-            output.update({
-                'qcec_cluster_tokens': qcec_output['cluster_tokens'],
-                'qcec_enhanced_clusters': qcec_output['enhanced_clusters'],
-                'qcec_cluster_attention': qcec_output['cluster_attention'],
-                'qcec_frame_hints': qcec_output['frame_hints'],
-                'qcec_global_hint': qcec_output['global_hint'],
-                'qcec_slot_features': qcec_output['slot_features'],
-            })
-        return output
 
-    def set_qcec_training_stage(self, qcec_only):
-        """Freeze or restore the baseline parameters for staged QCEC tuning."""
-        qcec_only = bool(qcec_only) and self.use_qcec
-        self.qcec_only_training = qcec_only
-        for parameter in self.parameters():
-            parameter.requires_grad = (
-                id(parameter) in self._qcec_parameter_ids
-                if qcec_only
-                else self._original_requires_grad.get(
-                    id(parameter), parameter.requires_grad))
+    def bpse_routing_schedule(self, epoch):
+        if not self.use_bpse:
+            return 0.0
+        if not self.training:
+            return 1.0
+        if int(epoch) < self.bpse_routing_start_epoch:
+            return 0.0
+        if self.bpse_routing_ramp_epochs <= 0:
+            return 1.0
+        return min(
+            (int(epoch) - self.bpse_routing_start_epoch + 1) /
+            float(self.bpse_routing_ramp_epochs), 1.0)
 
     def proposal_reconstruction_nll(self, words_logit, words_id, words_mask):
         bsz = words_id.size(0)
@@ -627,47 +491,39 @@ class CPL(nn.Module):
 
         return left_neg_weight, right_neg_weight
 
-    def _mask_words(self, words_feat, words_len, weights=None,
-                    mask_seeds=None):
-        token = self.mask_vec.to(
-            device=words_feat.device, dtype=words_feat.dtype).unsqueeze(0).unsqueeze(0)
+    def _mask_words(self, words_feat, words_len, weights=None):
+        if not self.training and self.eval_word_mask_mode == 'none':
+            return words_feat, torch.zeros(
+                words_feat.size(0), words_feat.size(1), 1,
+                dtype=torch.bool, device=words_feat.device)
+        token = self.mask_vec.to(words_feat).unsqueeze(0).unsqueeze(0)
         token = self.word_fc(token)
-
-        if mask_seeds is not None:
-            if torch.is_tensor(mask_seeds):
-                if mask_seeds.numel() != len(words_len):
-                    raise ValueError(
-                        'mask_seeds must contain one seed per sample')
-                mask_seeds = mask_seeds.detach().cpu().reshape(-1).tolist()
-            elif len(mask_seeds) != len(words_len):
-                raise ValueError(
-                    'mask_seeds must contain one seed per sample')
 
         masked_words = []
         for i, l in enumerate(words_len):
             l = int(l)
             num_masked_words = max(l // 3, 1) 
             masked_words.append(torch.zeros(
-                [words_feat.size(1)], dtype=torch.uint8,
+                [words_feat.size(1)], dtype=torch.bool,
                 device=words_feat.device))
             if l < 1:
                 continue
-            p = weights[i, :l].detach().cpu().numpy() \
-                if weights is not None else None
+            p = weights[i, :l].cpu().numpy() if weights is not None else None
             if p is not None:
                 p = np.asarray(p, dtype=np.float64)
+                p = np.maximum(p, 0)
                 p_sum = p.sum()
                 p = p / p_sum if p_sum > 0 else None
-            if mask_seeds is None:
+            if not self.training and self.eval_word_mask_mode == 'deterministic_topk':
+                if p is None:
+                    choices = np.arange(1, num_masked_words + 1)
+                else:
+                    choices = np.argsort(-p, kind='stable')[:num_masked_words] + 1
+            else:
                 choices = np.random.choice(
                     np.arange(1, l + 1), num_masked_words,
                     replace=False, p=p)
-            else:
-                sample_rng = np.random.default_rng(int(mask_seeds[i]))
-                choices = sample_rng.choice(
-                    np.arange(1, l + 1), num_masked_words,
-                    replace=False, p=p)
-            masked_words[-1][choices] = 1
+            masked_words[-1][choices] = True
         
         masked_words = torch.stack(masked_words, 0).unsqueeze(-1)
         masked_words_vec = words_feat.new_zeros(*words_feat.size()) + token

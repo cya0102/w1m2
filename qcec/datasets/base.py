@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from utils import load_json
+from utils import load_json, stable_sample_seed
 try:
     import nltk
 except ImportError:  # pragma: no cover - exercised only in minimal runtimes
@@ -319,6 +319,10 @@ class BaseDataset(Dataset):
             'words_feat': words_feat,
             'words_id': words_id,
             'weights': weights,
+            # Evaluation masks are derived from the sample identity rather
+            # than the DataLoader order.  This makes a fixed checkpoint
+            # comparable across batch sizes and worker counts.
+            'eval_mask_seed': stable_sample_seed(vid, sentence),
             'raw': [vid, duration, timestamps, sentence]
         }
         if self.return_query_roles:
@@ -367,6 +371,7 @@ def build_collate_data(max_num_frames, max_num_words, frame_dim, word_dim,
                 [bsz, int(qcec_num_clusters), 2], dtype=np.float32)
             qcec_cluster_mask = np.zeros(
                 [bsz, int(qcec_num_clusters)], dtype=bool)
+        eval_mask_seeds = np.zeros([bsz], dtype=np.int64)
         for i, sample in enumerate(samples):
             frames_feat[i, :len(sample['frames_feat'])] = sample['frames_feat']
             keep = min(len(sample['words_feat']), words_feat.shape[1])
@@ -376,6 +381,9 @@ def build_collate_data(max_num_frames, max_num_words, frame_dim, word_dim,
             keep = min(len(sample['weights']), weights.shape[1])
             tmp = np.exp(sample['weights'][:keep])
             weights[i, :keep] = tmp / max(np.sum(tmp), 1e-12)
+            eval_mask_seeds[i] = int(sample.get(
+                'eval_mask_seed',
+                stable_sample_seed(sample['raw'][0], sample['raw'][3])))
             if return_query_roles:
                 if 'query_role_mask' not in sample:
                     raise ValueError(
@@ -413,6 +421,7 @@ def build_collate_data(max_num_frames, max_num_words, frame_dim, word_dim,
                 'words_id': torch.from_numpy(words_id),
                 'weights': torch.from_numpy(weights),
                 'words_len': torch.from_numpy(np.asarray(words_len)),
+                'eval_mask_seeds': torch.from_numpy(eval_mask_seeds),
             }
         })
         if return_query_roles:

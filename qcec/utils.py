@@ -1,4 +1,8 @@
+import contextlib
+import hashlib
 import json
+import os
+import random
 import time
 
 import numpy as np
@@ -7,6 +11,96 @@ import numpy as np
 def load_json(filename):
     with open(filename, encoding='utf8') as fr:
         return json.load(fr)
+
+
+@contextlib.contextmanager
+def isolated_rng(seed):
+    """Run a deterministic block without consuming the caller's RNG state.
+
+    Evaluation uses this context so a validation pass cannot perturb the
+    random streams used by the next training epoch.  ``seed`` controls all
+    RNGs that can be touched by the CUDA-only training code.  CUDA states are
+    saved only when CUDA is available, which keeps the helper usable in the
+    CPU smoke-test environment as well.
+    """
+    import torch
+
+    python_state = random.getstate()
+    numpy_state = np.random.get_state()
+    torch_state = torch.get_rng_state()
+    cuda_states = (
+        torch.cuda.get_rng_state_all()
+        if torch.cuda.is_available() else None)
+    try:
+        seed = int(seed)
+        random.seed(seed)
+        np.random.seed(seed % (2 ** 32 - 1))
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        yield
+    finally:
+        random.setstate(python_state)
+        np.random.set_state(numpy_state)
+        torch.set_rng_state(torch_state)
+        if cuda_states is not None:
+            torch.cuda.set_rng_state_all(cuda_states)
+
+
+def stable_sample_seed(video_id, sentence):
+    """Return a process-independent seed for one video/query pair."""
+    payload = '{}\0{}'.format(video_id, sentence).encode('utf8')
+    digest = hashlib.blake2b(payload, digest_size=8).digest()
+    # Keep the value in the signed int64 range used by torch collate tensors.
+    return int.from_bytes(digest, byteorder='little', signed=False) & ((1 << 63) - 1)
+
+
+def sha256_file(path, chunk_size=1024 * 1024):
+    """Hash a file without loading it all into memory."""
+    digest = hashlib.sha256()
+    with open(path, 'rb') as handle:
+        while True:
+            chunk = handle.read(chunk_size)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def source_tree_digest(root):
+    """Return a stable digest for the source/config files in ``root``.
+
+    Runtime outputs, datasets and Python bytecode are deliberately excluded;
+    the result is intended to identify the implementation used by an
+    experiment rather than its generated artifacts.
+    """
+    root = os.path.abspath(os.fspath(root))
+    included_suffixes = {'.py', '.json', '.sh', '.txt'}
+    excluded_parts = {
+        '__pycache__', '.git', 'data', 'logs', 'checkpoints',
+    }
+    digest = hashlib.sha256()
+    paths = []
+    for directory, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(
+            name for name in dirnames
+            if name not in excluded_parts and not name.startswith('.'))
+        for filename in filenames:
+            path = os.path.join(directory, filename)
+            if os.path.splitext(filename)[1].lower() in included_suffixes:
+                paths.append(path)
+    for path in sorted(paths):
+        relative = os.path.relpath(path, root).replace(os.sep, '/')
+        digest.update(relative.encode('utf8'))
+        digest.update(b'\0')
+        with open(path, 'rb') as handle:
+            while True:
+                chunk = handle.read(1024 * 1024)
+                if not chunk:
+                    break
+                digest.update(chunk)
+        digest.update(b'\0')
+    return digest.hexdigest()
 
 
 def iou(pred, gt):

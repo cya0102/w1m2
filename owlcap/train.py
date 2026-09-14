@@ -19,18 +19,9 @@ def parse_args():
         '--init-from-v3', type=str, default=None,
         help='initialize compatible weights from a V3 checkpoint')
     checkpoint_group.add_argument(
-        '--init-from-baseline', type=str, default=None,
-        help='initialize a QCEC model from a matching baseline checkpoint')
-    checkpoint_group.add_argument(
-        '--init-from-public', type=str, default=None,
-        help='copy common tensors from a disabled-baseline initial state')
-    parser.add_argument(
-        '--save-initial-state', type=str, default=None,
-        help='save the freshly initialized model state before training')
+        '--init-from-cpl', type=str, default=None,
+        help='initialize BPSE from a structurally compatible CPL checkpoint')
     parser.add_argument('--eval', action='store_true', help='only evaluate')
-    parser.add_argument(
-        '--final-test', action='store_true',
-        help='run final Test evaluation for validation-selected checkpoints')
     parser.add_argument('--log_dir', default=None, type=str, help='log file save path')
     parser.add_argument('--tag', default='lrrv_v4', type=str, help='experiment tag')
     parser.add_argument(
@@ -38,15 +29,12 @@ def parse_args():
         help='use semantic weighted voting during inference')
     parser.add_argument(
         '--selection-strategy', default=None,
-        choices=['nll', 'geometric_vote', 'semantic_vote'],
+        choices=['nll', 'geometric_vote', 'semantic_vote', 'bpse'],
         help='proposal selector; overrides the backward-compatible --vote flag')
     parser.add_argument(
         '--selection-temperature', default=0.1, type=float,
         help='softmax temperature for semantic weighted voting')
     parser.add_argument('--seed', default=8, type=int, help='random seed')
-    parser.add_argument(
-        '--eval-seed', default=None, type=int,
-        help='independent deterministic seed used for evaluation masks')
     parser.add_argument('--alpha-1', default=None, type=float,
                         help='override CPL intra-video ranking weight')
     parser.add_argument('--alpha-2', default=None, type=float,
@@ -67,23 +55,10 @@ def parse_args():
                         help='override within-mixture pushing weight')
     parser.add_argument('--mixture-inter-push-weight', default=None, type=float,
                         help='override between-mixture pushing weight')
-    qcec_group = parser.add_mutually_exclusive_group()
-    qcec_group.add_argument(
-        '--qcec-enabled', dest='qcec_enabled', action='store_true',
-        default=None, help='enable QCEC in the loaded model config')
-    qcec_group.add_argument(
-        '--qcec-disabled', dest='qcec_enabled', action='store_false',
-        help='disable QCEC in the loaded model config')
-    snap_group = parser.add_mutually_exclusive_group()
-    snap_group.add_argument(
-        '--qcec-snap-enabled', dest='qcec_snap_enabled', action='store_true',
-        default=None, help='enable QCEC inference boundary snapping')
-    snap_group.add_argument(
-        '--qcec-snap-disabled', dest='qcec_snap_enabled', action='store_false',
-        help='disable QCEC inference boundary snapping')
-    parser.add_argument(
-        '--qcec-cross-weight', default=None, type=float,
-        help='override the QCEC proposal crossing loss weight')
+    parser.add_argument('--bpse-rank-weight', default=None, type=float)
+    parser.add_argument('--bpse-abs-weight', default=None, type=float)
+    parser.add_argument('--bpse-cov-weight', default=None, type=float)
+    parser.add_argument('--bpse-equiv-weight', default=None, type=float)
     parser.add_argument('--select-on-val', dest='select_on_val',
                         action='store_true', default=True,
                         help='select checkpoints on validation (stage01 default)')
@@ -99,26 +74,6 @@ def resolve_selection_strategy(vote, explicit_strategy=None):
     if explicit_strategy is not None:
         return explicit_strategy
     return 'semantic_vote' if vote else 'nll'
-
-
-def resolve_project_relative_paths(args):
-    """Make configs work from either the QCEC root or its parent directory."""
-    project_root = Path(__file__).resolve().parent
-    dataset = args.get('dataset', {})
-    for key in (
-            'train_data', 'test_data', 'val_data', 'vocab_path',
-            'qcec_cluster_index_path'):
-        value = dataset.get(key)
-        if not value or os.path.isabs(value):
-            continue
-        project_path = project_root / value
-        if project_path.exists() or key == 'qcec_cluster_index_path':
-            dataset[key] = str(project_path)
-    train_config = args.get('train', {})
-    model_path = train_config.get('model_saved_path')
-    if model_path and not os.path.isabs(model_path):
-        train_config['model_saved_path'] = str(project_root / model_path)
-    return args
 
 
 def main(kargs):
@@ -151,21 +106,7 @@ def main(kargs):
         log_filename = None
     logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s - %(message)s')
 
-    args = resolve_project_relative_paths(load_json(kargs.config_path))
-    args['config_path'] = str(Path(kargs.config_path).resolve())
-    args['seed'] = int(kargs.seed)
-    args['eval_seed'] = int(
-        kargs.eval_seed if kargs.eval_seed is not None
-        else kargs.seed + 1000033)
-    args['final_test'] = bool(kargs.final_test)
-    qcec_config = args.setdefault('model', {}).setdefault('config', {}).setdefault(
-        'qcec', {})
-    qcec_enabled = getattr(kargs, 'qcec_enabled', None)
-    qcec_snap_enabled = getattr(kargs, 'qcec_snap_enabled', None)
-    if qcec_enabled is not None:
-        qcec_config['enabled'] = qcec_enabled
-    if qcec_snap_enabled is not None:
-        qcec_config['snap_enabled'] = qcec_snap_enabled
+    args = load_json(kargs.config_path)
     loss_overrides = {
         'alpha_1': kargs.alpha_1,
         'alpha_2': kargs.alpha_2,
@@ -177,7 +118,10 @@ def main(kargs):
         'mixture_pull_weight': kargs.mixture_pull_weight,
         'mixture_intra_push_weight': kargs.mixture_intra_push_weight,
         'mixture_inter_push_weight': kargs.mixture_inter_push_weight,
-        'qcec_cross_weight': getattr(kargs, 'qcec_cross_weight', None),
+        'bpse_rank_weight': kargs.bpse_rank_weight,
+        'bpse_abs_weight': kargs.bpse_abs_weight,
+        'bpse_cov_weight': kargs.bpse_cov_weight,
+        'bpse_equiv_weight': kargs.bpse_equiv_weight,
     }
     active_overrides = {
         key: value for key, value in loss_overrides.items()
@@ -192,19 +136,18 @@ def main(kargs):
         kargs.vote, kargs.selection_strategy)
     args['selection_temperature'] = kargs.selection_temperature
     args['select_on_val'] = kargs.select_on_val
+    if (args['selection_strategy'] == 'bpse' and not
+            args['model']['config'].get('bpse', {}).get('enabled', False)):
+        raise ValueError(
+            'selection strategy bpse requires model.config.bpse.enabled=true')
     logging.info(str(args))
 
     runner = MainRunner(args)
 
-    if kargs.save_initial_state:
-        runner._save_initial_state(kargs.save_initial_state)
-
     if kargs.init_from_v3:
         runner._load_pretrained_model(kargs.init_from_v3)
-    if getattr(kargs, 'init_from_baseline', None):
-        runner._load_baseline_model(kargs.init_from_baseline)
-    if getattr(kargs, 'init_from_public', None):
-        runner._load_public_initial_state(kargs.init_from_public)
+    if kargs.init_from_cpl:
+        runner._load_cpl_baseline(kargs.init_from_cpl)
     if kargs.resume:
         runner._load_model(kargs.resume)
     if kargs.eval:

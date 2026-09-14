@@ -3,6 +3,20 @@ import torch.nn.functional as F
 import pdb
 
 
+def _validate_proposal_weights(proposal_weights, bsz, num_props):
+    if proposal_weights is None:
+        return None
+    if proposal_weights.shape != (bsz, num_props):
+        raise ValueError('proposal_weights must have shape [{}, {}], got {}'.format(
+            bsz, num_props, tuple(proposal_weights.shape)))
+    if not torch.isfinite(proposal_weights).all():
+        raise ValueError('proposal_weights must be finite')
+    if (proposal_weights < 0).any():
+        raise ValueError('proposal_weights must be non-negative')
+    return proposal_weights / proposal_weights.sum(
+        dim=-1, keepdim=True).clamp_min(1e-6)
+
+
 def cal_nll_loss(logit, idx, mask, weights=None):
     eps = 0.1
     acc = (logit.max(dim=-1)[1]==idx).float()
@@ -30,9 +44,14 @@ def rec_loss(words_logit, words_id, words_mask, num_props, ref_words_logit=None,
 
     nll_loss, acc = cal_nll_loss(words_logit, words_id1, words_mask1)
     nll_loss = nll_loss.view(bsz, num_props)
-    min_nll_loss = nll_loss.min(dim=-1)[0]
+    proposal_weights = _validate_proposal_weights(
+        kwargs.get('proposal_weights'), bsz, num_props)
+    if proposal_weights is None:
+        selected_nll = nll_loss.min(dim=-1)[0]
+    else:
+        selected_nll = (proposal_weights.detach() * nll_loss).sum(dim=-1)
 
-    final_loss = min_nll_loss.mean()
+    final_loss = selected_nll.mean()
 
     if ref_words_logit is not None:
         ref_nll_loss, ref_acc = cal_nll_loss(ref_words_logit, words_id, words_mask) 
@@ -41,9 +60,7 @@ def rec_loss(words_logit, words_id, words_mask, num_props, ref_words_logit=None,
     
     loss_dict = {
         'final_loss': final_loss.item(),
-        'nll_loss': min_nll_loss.mean().item(),
-        'raw_rec_nll_loss': min_nll_loss.mean().item(),
-        'weighted_rec_nll_loss': final_loss.item(),
+        'nll_loss': selected_nll.mean().item(),
     }
     if ref_words_logit is not None:
         loss_dict.update({
@@ -61,7 +78,16 @@ def ivc_loss(words_logit, words_id, words_mask, num_props, neg_words_logit_1=Non
         .expand(bsz, num_props, -1).contiguous().view(bsz*num_props, -1)
 
     nll_loss, acc = cal_nll_loss(words_logit, words_id1, words_mask1)
-    min_nll_loss, idx = nll_loss.view(bsz, num_props).min(dim=-1)
+    proposal_weights = _validate_proposal_weights(
+        kwargs.get('proposal_weights'), bsz, num_props)
+    nll_by_prop = nll_loss.view(bsz, num_props)
+    if proposal_weights is None:
+        min_nll_loss, idx = nll_by_prop.min(dim=-1)
+    else:
+        # The same detached BPSE routing weights are used for positive and
+        # contextual negative proposals, preserving the proposal alignment.
+        min_nll_loss = (proposal_weights.detach() * nll_by_prop).sum(dim=-1)
+        idx = nll_by_prop.argmin(dim=-1)
 
     if ref_words_logit is not None:
         ref_nll_loss, ref_acc = cal_nll_loss(ref_words_logit, words_id, words_mask)
@@ -74,7 +100,13 @@ def ivc_loss(words_logit, words_id, words_mask, num_props, neg_words_logit_1=Non
     
     if neg_words_logit_1 is not None:
         neg_nll_loss_1, neg_acc_1 = cal_nll_loss(neg_words_logit_1, words_id1, words_mask1)
-        neg_nll_loss_1 = torch.gather(neg_nll_loss_1.view(bsz, num_props), index=idx.unsqueeze(-1), dim=-1).squeeze(-1)
+        neg_nll_by_prop_1 = neg_nll_loss_1.view(bsz, num_props)
+        if proposal_weights is None:
+            neg_nll_loss_1 = torch.gather(
+                neg_nll_by_prop_1, index=idx.unsqueeze(-1), dim=-1).squeeze(-1)
+        else:
+            neg_nll_loss_1 = (proposal_weights.detach() *
+                              neg_nll_by_prop_1).sum(dim=-1)
         tmp_0 = torch.zeros_like(min_nll_loss)
         tmp_0.requires_grad = False
         neg_loss_1 = torch.max(min_nll_loss - neg_nll_loss_1 + kwargs["margin_2"], tmp_0)
@@ -82,14 +114,19 @@ def ivc_loss(words_logit, words_id, words_mask, num_props, neg_words_logit_1=Non
     
     if neg_words_logit_2 is not None:
         neg_nll_loss_2, neg_acc_2 = cal_nll_loss(neg_words_logit_2, words_id1, words_mask1)
-        neg_nll_loss_2 = torch.gather(neg_nll_loss_2.view(bsz, num_props), index=idx.unsqueeze(-1), dim=-1).squeeze(-1)
+        neg_nll_by_prop_2 = neg_nll_loss_2.view(bsz, num_props)
+        if proposal_weights is None:
+            neg_nll_loss_2 = torch.gather(
+                neg_nll_by_prop_2, index=idx.unsqueeze(-1), dim=-1).squeeze(-1)
+        else:
+            neg_nll_loss_2 = (proposal_weights.detach() *
+                              neg_nll_by_prop_2).sum(dim=-1)
         tmp_0 = torch.zeros_like(min_nll_loss)
         tmp_0.requires_grad = False
         neg_loss_2 = torch.max(min_nll_loss - neg_nll_loss_2 + kwargs["margin_2"], tmp_0)
         rank_loss = rank_loss + neg_loss_2.mean()
 
-    raw_rank_loss = rank_loss.mean()
-    loss = kwargs['alpha_1'] * raw_rank_loss
+    loss = kwargs['alpha_1'] * rank_loss
 
     gauss_weight = kwargs['gauss_weight'].view(bsz, num_props, -1)
     gauss_weight = gauss_weight / gauss_weight.sum(dim=-1, keepdim=True)
@@ -98,18 +135,11 @@ def ivc_loss(words_logit, words_id, words_mask, num_props, neg_words_logit_1=Non
         dtype=gauss_weight.dtype).unsqueeze(0) * kwargs["lambda"]
     source = torch.matmul(gauss_weight, gauss_weight.transpose(1, 2))
     div_loss = torch.norm(target - source, dim=(1, 2))**2
-    raw_div_loss = div_loss.mean()
 
-    loss = loss + kwargs['alpha_2'] * raw_div_loss
+    loss = loss + kwargs['alpha_2'] * div_loss.mean()
 
     return loss, {
         'ivc_loss': loss.item(),
-        'raw_ivc_rank_loss': raw_rank_loss.item(),
-        'raw_ivc_div_loss': raw_div_loss.item(),
-        'weighted_ivc_rank_loss': (
-            kwargs['alpha_1'] * raw_rank_loss).item(),
-        'weighted_ivc_div_loss': (
-            kwargs['alpha_2'] * raw_div_loss).item(),
         'neg_loss_1': neg_loss_1.mean().item() if neg_words_logit_1 is not None else 0.0,
         'neg_loss_2': neg_loss_2.mean().item() if neg_words_logit_2 is not None else 0.0,
         'neg_active_fraction_1': (
@@ -119,11 +149,123 @@ def ivc_loss(words_logit, words_id, words_mask, num_props, neg_words_logit_1=Non
             (neg_loss_2 > 0).float().mean().item()
             if neg_words_logit_2 is not None else 0.0),
         'ref_loss': ref_loss.mean().item() if ref_words_logit is not None else 0.0,
-        'ref_active_fraction': (
-            (ref_loss > 0).float().mean().item()
-            if ref_words_logit is not None else 0.0),
         'div_loss': div_loss.mean().item()
     }
+
+
+def bpse_loss(words_logit, bpse_quality_logits=None,
+              bpse_completeness=None, bpse_purity=None,
+              bpse_equivalence=None, bpse_span_completeness=None,
+              bpse_span_equivalence=None,
+              bpse_group_quality_logits=None, bpse_group_equivalence=None,
+              bpse_group_valid_mask=None, bpse_group_spans=None,
+              bpse_group_event_mass=None, **kwargs):
+    """Train the BPSE quality head and optionally move proposal boundaries.
+
+    All equivalence targets are detached.  The span losses receive the live
+    soft-box path produced by ``BPSEScorer`` and therefore can update proposal
+    boundaries without changing the evidence field.
+    """
+    zero = words_logit.sum() * 0.0
+    metrics = {
+        'bpse_loss': 0.0,
+        'bpse_rank_loss': 0.0,
+        'bpse_abs_loss': 0.0,
+        'bpse_cov_loss': 0.0,
+        'bpse_equiv_loss': 0.0,
+        'bpse_valid_pairs': 0.0,
+        'bpse_pair_coverage': 0.0,
+        'bpse_pair_accuracy': 0.0,
+        'bpse_target_std': 0.0,
+        'bpse_mean_completeness': 0.0,
+        'bpse_mean_purity': 0.0,
+        'bpse_mean_equivalence': 0.0,
+        'bpse_mean_quality': 0.0,
+        'bpse_mean_route_entropy': 0.0,
+    }
+    if (bpse_quality_logits is None or bpse_equivalence is None or
+            bpse_group_quality_logits is None or
+            bpse_group_equivalence is None or
+            bpse_group_valid_mask is None):
+        return zero, metrics
+
+    group_target = bpse_group_equivalence.detach().clamp(0, 1)
+    group_logits = bpse_group_quality_logits
+    valid = bpse_group_valid_mask.bool()
+    if group_logits.shape != group_target.shape or valid.shape != group_target.shape:
+        raise ValueError('BPSE group tensors must have the same shape')
+    rank_temperature = max(float(kwargs.get('bpse_rank_temperature', 0.2)), 1e-6)
+    pair_margin = float(kwargs.get('bpse_pair_margin', 0.05))
+    target_delta = group_target.unsqueeze(-1) - group_target.unsqueeze(-2)
+    pair_mask = target_delta >= pair_margin
+    pair_mask = pair_mask & valid.unsqueeze(-1) & valid.unsqueeze(-2)
+    if bpse_group_event_mass is not None:
+        mass_min = float(kwargs.get('bpse_mass_min', 0.01))
+        mass_valid = bpse_group_event_mass.detach() >= mass_min
+        pair_mask = pair_mask & mass_valid.unsqueeze(-1) & mass_valid.unsqueeze(-2)
+    diagonal = torch.eye(
+        group_target.size(-1), device=pair_mask.device, dtype=torch.bool)
+    pair_mask = pair_mask & ~diagonal.view(1, 1, *diagonal.shape)
+    logit_delta = group_logits.unsqueeze(-1) - group_logits.unsqueeze(-2)
+    if pair_mask.any():
+        rank_loss = F.softplus(-logit_delta / rank_temperature).masked_select(
+            pair_mask).mean()
+        pair_accuracy = (logit_delta > 0).masked_select(pair_mask).float().mean()
+        valid_pairs = int(pair_mask.sum().detach().item())
+    else:
+        rank_loss = zero
+        pair_accuracy = zero
+        valid_pairs = 0
+    valid_entries = valid.sum().clamp_min(1)
+    if valid.any():
+        abs_loss = F.binary_cross_entropy_with_logits(
+            group_logits.masked_select(valid), group_target.masked_select(valid))
+    else:
+        abs_loss = zero
+
+    cov_loss = zero
+    equiv_loss = zero
+    if bpse_completeness is not None and bpse_span_completeness is not None:
+        winner_temperature = max(
+            float(kwargs.get('bpse_soft_winner_temperature', 0.1)), 1e-6)
+        winner_source = bpse_equivalence.detach()
+        winner = torch.softmax(winner_source / winner_temperature, dim=-1).detach()
+        cov_loss = (winner * (1.0 - bpse_span_completeness)).sum(dim=-1).mean()
+        if bpse_span_equivalence is not None:
+            equiv_loss = (winner * (1.0 - bpse_span_equivalence)).sum(
+                dim=-1).mean()
+
+    total = (
+        float(kwargs.get('bpse_rank_weight', 1.0)) * rank_loss
+        + float(kwargs.get('bpse_abs_weight', 0.5)) * abs_loss
+        + float(kwargs.get('bpse_cov_weight', 0.1)) * cov_loss
+        + float(kwargs.get('bpse_equiv_weight', 0.0)) * equiv_loss)
+
+    route = kwargs.get('bpse_routing_weights')
+    if route is not None:
+        route = route.detach().clamp_min(1e-8)
+        route_entropy = -(route * route.log()).sum(dim=-1).mean()
+        metrics['bpse_mean_route_entropy'] = route_entropy.item()
+    metrics.update({
+        'bpse_loss': total.item(),
+        'bpse_rank_loss': rank_loss.item(),
+        'bpse_abs_loss': abs_loss.item(),
+        'bpse_cov_loss': cov_loss.item(),
+        'bpse_equiv_loss': equiv_loss.item(),
+        'bpse_valid_pairs': float(valid_pairs),
+        'bpse_pair_coverage': float(pair_mask.any(dim=-1).float().mean().item()),
+        'bpse_pair_accuracy': pair_accuracy.item(),
+        'bpse_target_std': group_target.masked_select(valid).std().item()
+        if int(valid_entries.item()) > 1 else 0.0,
+        'bpse_mean_completeness': bpse_completeness.detach().mean().item()
+        if bpse_completeness is not None else 0.0,
+        'bpse_mean_purity': bpse_purity.detach().mean().item()
+        if bpse_purity is not None else 0.0,
+        'bpse_mean_equivalence': bpse_equivalence.detach().mean().item(),
+        'bpse_mean_quality': torch.sigmoid(
+            bpse_quality_logits.detach()).mean().item(),
+    })
+    return total, metrics
 
 
 def mixture_pull_push_loss(words_logit, num_props,
@@ -346,13 +488,6 @@ def event_disentanglement_loss(words_logit, words_id, words_mask, num_props,
         'event_overlap_loss': overlap_loss.item(),
         'event_semantic_loss': semantic_loss.item(),
         'event_boundary_loss': boundary_loss.item(),
-        'raw_event_semantic_loss': semantic_loss.item(),
-        'raw_event_boundary_loss': boundary_loss.item(),
-        'weighted_event_semantic_loss': (
-            kwargs.get('event_alpha', 0.0)
-            * float(event_schedule) * semantic_loss).item(),
-        'weighted_event_boundary_loss': (
-            kwargs.get('event_alpha', 0.0) * boundary_loss).item(),
         'event_selection_entropy': selection_entropy.item(),
         'event_mean_width': width.mean().item(),
         'event_context_violation': (
@@ -363,137 +498,3 @@ def event_disentanglement_loss(words_logit, words_id, words_mask, num_props,
         'event_smallest_selected_eigenvalue': float(
             event_smallest_selected_eigenvalue),
     }
-
-
-def qcec_coherence_loss(
-        words_logit,
-        num_props,
-        center=None,
-        width=None,
-        qcec_transition_positions=None,
-        qcec_barrier_lr=None,
-        qcec_barrier_rl=None,
-        qcec_transition_mask=None,
-        qcec_cross_weight=0.0,
-        qcec_cross_temperature=0.02,
-        qcec_detach_barrier=True,
-        qcec_cluster_relevance=None,
-        **kwargs):
-    """Penalize proposals that cross a query-directed event barrier.
-
-    ``barrier_lr`` describes a relevant-left/irrelevant-right transition and
-    ``barrier_rl`` the opposite direction.  The barrier values are detached
-    by default, so the easiest way to reduce this loss is to move the proposal
-    rather than flattening every relevance value.
-    """
-    zero_metrics = {
-        'qcec_loss': 0.0,
-        'qcec_cross_raw': 0.0,
-        'qcec_active_barrier_fraction': 0.0,
-        'qcec_mean_barrier': 0.0,
-        'qcec_proposal_crossing_fraction': 0.0,
-    }
-    zero = words_logit.sum() * 0.0
-    required = (
-        center, width, qcec_transition_positions,
-        qcec_barrier_lr, qcec_barrier_rl, qcec_transition_mask)
-    if any(value is None for value in required):
-        return zero, zero_metrics
-    if num_props < 1:
-        raise ValueError("num_props must be positive")
-    if qcec_cross_temperature <= 0:
-        raise ValueError("qcec_cross_temperature must be positive")
-
-    batch_proposals = words_logit.size(0)
-    if batch_proposals % num_props != 0:
-        raise ValueError("words_logit first dimension is not divisible by num_props")
-    batch_size = batch_proposals // num_props
-    centers = center.reshape(batch_size, num_props)
-    widths = width.reshape(batch_size, num_props)
-    positions = qcec_transition_positions
-    barrier_lr = qcec_barrier_lr
-    barrier_rl = qcec_barrier_rl
-    transition_mask = qcec_transition_mask.bool()
-    expected = (batch_size, positions.size(-1))
-    for name, value in (
-            ('qcec_barrier_lr', barrier_lr),
-            ('qcec_barrier_rl', barrier_rl),
-            ('qcec_transition_mask', transition_mask)):
-        if value.shape != expected:
-            raise ValueError('{} has an incompatible shape'.format(name))
-    if positions.dim() != 2:
-        raise ValueError("qcec_transition_positions must have shape [B, J]")
-    if positions.size(0) != batch_size:
-        raise ValueError("QCEC transition metadata has an incompatible batch size")
-    if positions.size(-1) == 0:
-        return zero, zero_metrics
-
-    # All arithmetic below is float32 for stable small barriers under AMP.
-    centers = centers.float()
-    widths = widths.float()
-    positions = positions.float()
-    barrier_lr = barrier_lr.float()
-    barrier_rl = barrier_rl.float()
-    mask = transition_mask.to(dtype=torch.float32)
-    if qcec_detach_barrier:
-        barrier_lr = barrier_lr.detach()
-        barrier_rl = barrier_rl.detach()
-
-    proposal_start = (centers - widths / 2.0).clamp(0.0, 1.0)
-    proposal_end = (centers + widths / 2.0).clamp(0.0, 1.0)
-    eta = float(qcec_cross_temperature)
-    # Shapes: [B, N, J].  Clamp sigmoid arguments rather than using -inf so
-    # masked entries never create an indeterminate ``0 * inf`` product.
-    right_gate = torch.sigmoid(torch.clamp(
-        (proposal_end.unsqueeze(-1) - positions.unsqueeze(1)) / eta,
-        min=-30.0, max=30.0))
-    left_gate = torch.sigmoid(torch.clamp(
-        (positions.unsqueeze(1) - proposal_start.unsqueeze(-1)) / eta,
-        min=-30.0, max=30.0))
-    crossing_gate = right_gate * left_gate
-    barrier_lr = barrier_lr.unsqueeze(1)
-    barrier_rl = barrier_rl.unsqueeze(1)
-    position = positions.unsqueeze(1)
-    right_overshoot = F.relu(proposal_end.unsqueeze(-1) - position)
-    left_overshoot = F.relu(position - proposal_start.unsqueeze(-1))
-    contribution = crossing_gate * (
-        barrier_lr * right_overshoot + barrier_rl * left_overshoot)
-    contribution = contribution * mask.unsqueeze(1)
-    valid_transition_count = mask.sum().clamp_min(1.0)
-    raw_loss = contribution.sum() / (
-        valid_transition_count * float(num_props))
-    loss = float(qcec_cross_weight) * raw_loss
-
-    active = ((barrier_lr.squeeze(1) + barrier_rl.squeeze(1)) > 0)
-    active = active & transition_mask
-    active_count = active.float().sum().clamp_min(1.0)
-    active_fraction = active.float().sum() / mask.sum().clamp_min(1.0)
-    mean_barrier = (
-        (barrier_lr.squeeze(1) + barrier_rl.squeeze(1))
-        * transition_mask.to(torch.float32)).sum() / active_count
-    crossing_pairs = crossing_gate * active.unsqueeze(1).to(crossing_gate.dtype)
-    proposal_crossing = (crossing_pairs.sum(dim=-1) > 0.5).float().mean()
-
-    metrics = {
-        'qcec_loss': float(loss.detach().item()),
-        'qcec_cross_raw': float(raw_loss.detach().item()),
-        'raw_qcec_cross_loss': float(raw_loss.detach().item()),
-        'weighted_qcec_cross_loss': float(loss.detach().item()),
-        'qcec_active_barrier_fraction': float(active_fraction.detach().item()),
-        'qcec_mean_barrier': float(mean_barrier.detach().item()),
-        'qcec_proposal_crossing_fraction': float(
-            proposal_crossing.detach().item()),
-    }
-    if qcec_cluster_relevance is not None:
-        metrics['qcec_mean_relevance'] = float(
-            qcec_cluster_relevance.float().mean().detach().item())
-        barrier_values = torch.cat([
-            barrier_lr.squeeze(1), barrier_rl.squeeze(1)], dim=-1)
-        barrier_mask = torch.cat([transition_mask, transition_mask], dim=-1)
-        valid_barriers = barrier_values.detach().masked_select(barrier_mask)
-        if valid_barriers.numel() > 0:
-            metrics['qcec_barrier_p50'] = float(
-                valid_barriers.median().item())
-            metrics['qcec_barrier_p95'] = float(
-                torch.quantile(valid_barriers, 0.95).item())
-    return loss, metrics

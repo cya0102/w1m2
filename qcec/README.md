@@ -47,3 +47,52 @@ python -m pytest -q tests
 The tests cover contiguous clustering, dataset metadata/role masks, the QCEC
 tensor contract, proposal bias compatibility, crossing loss, snapping, and
 end-to-end forward/backward behavior.
+
+## ActivityNet recovery protocol
+
+The recovery plan uses three paired scratch runs. B is the QCEC-disabled
+baseline, A enables the adapter with crossing weight 0, and C adds crossing
+weight 0.1. All three use `freeze_backbone_epochs=0`, NLL selection, and
+validation-only checkpoint selection. Run them serially so B can export the
+public initial state used by A/C:
+
+```bash
+./scripts/run_activitynet_recovery.sh
+```
+
+Use another seed or GPU with environment variables:
+
+```bash
+SEED=18 CUDA_VISIBLE_DEVICES=1 ./scripts/run_activitynet_recovery.sh
+```
+
+Each run writes `run_metadata.json`, `resolved_config.json`, `metrics.jsonl`,
+and `metrics.csv` under
+`checkpoints/activitynet_recovery/<run>/`. The final Test pass is disabled
+during development; after locking the variant and checkpoint rule, evaluate
+the chosen checkpoint explicitly with `--eval --resume`.
+
+To cache a fixed Validation/Test forward pass for geometry and selector
+diagnostics:
+
+```bash
+python tools/cache_recovery_diagnostics.py \
+  --config-path config/activitynet/recovery_c_cross.json \
+  --checkpoint checkpoints/activitynet_recovery/<run>/model-best.pt \
+  --split val \
+  --output diagnostics/activitynet/<run>_val.npz
+
+python tools/analyze_recovery_cache.py \
+  --cache diagnostics/activitynet/<run>_val.npz \
+  --output diagnostics/activitynet/<run>_val_analysis.json
+```
+
+After seeds 8/18/28 finish, summarize only the Validation-selected rows:
+
+```bash
+python tools/summarize_recovery_runs.py \
+  --run B_s8=checkpoints/activitynet_recovery/<b8-run> \
+  --run A_s8=checkpoints/activitynet_recovery/<a8-run> \
+  --run C_s8=checkpoints/activitynet_recovery/<c8-run> \
+  --output diagnostics/activitynet/recovery_summary.json
+```
