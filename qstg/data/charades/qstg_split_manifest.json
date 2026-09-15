@@ -1,0 +1,42 @@
+{
+  "source": "data/charades/train.json",
+  "salt": "qstg-charades-val-v1",
+  "val_fraction": 0.1,
+  "source_queries": 10602,
+  "train_queries": 9616,
+  "val_queries": 986,
+  "source_videos": 4842,
+  "train_videos": 4378,
+  "val_videos": 464,
+  "test_videos": 1225,
+  "query_counts_by_video": {
+    "train": [
+      [
+        "UETKQ",
+        10
+      ],
+      [
+        "MNBEI",
+        9
+      ],
+      [
+        "CZPU9",
+        9
+      ]
+    ],
+    "val": [
+      [
+        "8FH2F",
+        10
+      ],
+      [
+        "2U0QT",
+        9
+      ],
+      [
+        "H26YY",
+        7
+      ]
+    ]
+  }
+}
