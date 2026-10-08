@@ -124,6 +124,11 @@ class MainRunner:
                 split=selection_split)
             selection_scores = calculate_checkpoint_selection_scores(results)
             for objective, score in selection_scores.items():
+                if not np.isfinite(float(score)):
+                    info('Skipping {} checkpoint selection at epoch {}: '
+                         'non-finite {} score ({!r}).'.format(
+                             selection_split, epoch, objective, score))
+                    continue
                 best = best_by_objective[objective]
                 if score > best['score']:
                     best.update(
@@ -144,10 +149,11 @@ class MainRunner:
             event_active = (
                 not self.model.use_event_disentanglement
                 or self.model.event_disentangler.subspace_updates.item() > 0)
-            if event_active and (
-                    best_event_results is None
-                    or results['R@1,mIoU'].avg
-                    > best_event_results['R@1,mIoU'].avg):
+            event_rank1 = results['R@1,mIoU'].avg
+            if (event_active and np.isfinite(float(event_rank1)) and
+                    (best_event_results is None
+                     or event_rank1
+                     > best_event_results['R@1,mIoU'].avg)):
                 best_event_results = results
                 best_event_epoch = epoch
                 shutil.copyfile(
@@ -158,6 +164,11 @@ class MainRunner:
             info('=' * 60)
         
         for objective, best in best_by_objective.items():
+            if best['results'] is None:
+                raise RuntimeError(
+                    'No finite {} checkpoint selection score was produced '
+                    'on {}. Check the training/evaluation tensors for NaN '
+                    'or Inf.'.format(objective, selection_split))
             msg = '|'.join([
                 ' {} {:.4f} '.format(k, v.avg)
                 for k, v in best['results'].items()])

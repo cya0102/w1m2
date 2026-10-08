@@ -6,6 +6,7 @@ PYTHON_BIN="${QSTG_PYTHON:-/home/chenyuan/miniconda3/envs/cpl/bin/python}"
 cd "$ROOT"
 exec "$PYTHON_BIN" train.py \
   --config-path config/activitynet/qstg_stage_a.json \
+  --log_dir logs/activitynet \
   --init-from-baseline checkpoints/bootstrap/activitynet-model-best.pt \
   --selection-strategy qstg \
   --eval-mask-mode deterministic \

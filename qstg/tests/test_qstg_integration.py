@@ -68,3 +68,24 @@ def test_single_and_mixture_qstg_forward_backward():
             objective = output['words_logit'].mean() + output['proposal_analytic_score'].mean()
             objective.backward()
             assert model.qstg.pre_query_projection.weight.grad is not None
+
+
+def test_padded_phrase_slots_do_not_poison_qstg_gradients():
+    with patch.object(torch.Tensor, 'cuda', lambda tensor, *a, **k: tensor):
+        torch.manual_seed(22)
+        model = CPL(_config('single_gaussian'))
+        model.train()
+        batch = _batch()
+        batch['phrase_valid'] = torch.tensor(
+            [[True, True, False, False], [True, False, False, False]])
+        batch['phrase_required'] = batch['phrase_valid'].clone()
+        batch['phrase_token_mask'][:, 2:] = False
+        output = model(**batch)
+        assert torch.isfinite(output['words_logit']).all()
+        assert torch.isfinite(output['proposal_analytic_score']).all()
+        objective = (output['words_logit'].mean()
+                     + output['proposal_analytic_score'].mean())
+        objective.backward()
+        for parameter in model.qstg.parameters():
+            if parameter.grad is not None:
+                assert torch.isfinite(parameter.grad).all()

@@ -131,15 +131,34 @@ class QueryPhraseGraphEncoder(nn.Module):
         diagonal = torch.eye(
             phrase_count, device=query_states.device, dtype=torch.bool)
         edge = edge | (diagonal.unsqueeze(0) & valid.unsqueeze(-1))
+
+        # MultiheadAttention produces NaN for a query row whose complete key
+        # set is masked (softmax([-inf, ...]) is undefined).  This occurs for
+        # padded phrase slots because they are both invalid query rows and
+        # excluded by key_padding_mask.  Give each such row one finite
+        # fallback key.  The fallback output is discarded below, so valid
+        # phrase-to-phrase attention is unchanged.  The no-valid-phrase case
+        # is covered as well by temporarily exposing slot zero as the key.
+        has_valid = valid.any(dim=-1)
+        fallback_index = valid.to(torch.long).argmax(dim=-1)
+        fallback_key = F.one_hot(
+            fallback_index, num_classes=phrase_count).bool()
+        fallback_query_edge = (~valid).unsqueeze(-1) & fallback_key.unsqueeze(1)
+        safe_edge = edge | fallback_query_edge
+        safe_key_valid = valid | (
+            fallback_key & (~has_valid).unsqueeze(-1))
         attn_mask = torch.zeros(
             bsz, phrase_count, phrase_count, device=query_states.device,
             dtype=phrase_features.dtype)
-        attn_mask = attn_mask.masked_fill(~edge, float('-inf'))
+        attn_mask = attn_mask.masked_fill(~safe_edge, float('-inf'))
         attn_mask = attn_mask.repeat_interleave(self.num_heads, dim=0)
-        key_padding_mask = ~valid
+        key_padding_mask = ~safe_key_valid
         updated, _ = self.graph_attention(
             phrase_features, phrase_features, phrase_features,
             key_padding_mask=key_padding_mask, attn_mask=attn_mask)
+        # Padding slots are not graph nodes.  Keep their state exactly zero
+        # after the finite fallback attention computation.
+        updated = updated * valid.unsqueeze(-1).to(updated.dtype)
         phrase_features = self.graph_norm(phrase_features + updated)
         phrase_features = phrase_features * valid.unsqueeze(-1).to(
             phrase_features.dtype)

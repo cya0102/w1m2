@@ -6,6 +6,7 @@ PYTHON_BIN="${QSTG_PYTHON:-/home/chenyuan/miniconda3/envs/cpl/bin/python}"
 cd "$ROOT"
 exec "$PYTHON_BIN" train.py \
   --config-path config/charades/qstg_stage_b.json \
+  --log_dir logs/charades \
   --init-weights "${QSTG_CHARADES_STAGE_A_CHECKPOINT:?set QSTG_CHARADES_STAGE_A_CHECKPOINT}" \
   --selection-strategy qstg \
   --eval-mask-mode deterministic \
