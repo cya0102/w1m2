@@ -1,0 +1,527 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand*\HyPL@Entry[1]{}
+\bibstyle{plain}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{vaswani-nips2017-attention}
+\citation{gu-arxiv2023-mamba}
+\citation{wang-nips2020-fusion}
+\citation{shu-iccv2021-channelkd}
+\citation{liu-iclr2023-fkd}
+\citation{wang-aaai2024-gkd}
+\citation{liu-iclr2023-fkd}
+\citation{wang-cvpr2024-crosskd}
+\HyPL@Entry{0<</S/D>>}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\citation{wang-nips2020-fusion}
+\citation{shu-iccv2021-channelkd}
+\citation{wang-aaai2024-gkd}
+\citation{liu-iclr2023-fkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{guo-tpami2024-pixelkd}
+\citation{guo-tpami2024-pixelkd}
+\citation{li-acmmm2025-slakd}
+\citation{wang-aaai2024-gkd}
+\citation{wang-tip2024-dkd}
+\citation{liu-iclr2023-fkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{passban-aaai2021-alpkd}
+\citation{dai-aaai2025-channelkd}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{yang-cvpr2020-temporal}
+\citation{liu-cvpr2022-video}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Our Motivation}}{3}{figure.1}\protected@file@percent }
+\newlabel{Motivation}{{1}{3}{Our Motivation}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{3}{section.2}\protected@file@percent }
+\citation{geoffrey-arxiv2015-kd}
+\citation{li-aaai2023-ctkd}
+\citation{sun-cvpr2024-lskd}
+\citation{Yang-iccv2023-unifiedkd}
+\citation{wu-eccv2022-tinyvit}
+\citation{peng-icml2024-auxkd}
+\citation{han-nips2015-learning}
+\citation{wang-aaai2024-gkd}
+\citation{liu-iclr2023-fkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{guo-tpami2024-pixelkd}
+\citation{li-acmmm2025-slakd}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Knowledge Distillation}{4}{subsection.2.1}\protected@file@percent }
+\citation{wang-nips2020-fusion}
+\citation{shu-iccv2021-channelkd}
+\citation{tao-aaai2025-channelkd}
+\citation{vaswani-nips2017-attention}
+\citation{gu-arxiv2023-mamba}
+\citation{wang-iclr2019-dataset}
+\citation{zhao-iclr2021-dcwgm}
+\citation{cazenavette-cvpr2022-ddmtt}
+\citation{cui-cvpr2025-optical}
+\citation{wang-cvpr2025-ncfm}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Dataset Distillation}{5}{subsection.2.2}\protected@file@percent }
+\citation{wang-cvpr2024-vdsd}
+\citation{zhao-arxiv2024-idtd}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{vaswani-nips2017-attention}
+\citation{horn-ai1981-determining}
+\citation{simon-nips2014-twostream}
+\citation{wang-eccv2016-action}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Action Recognition}{6}{subsection.2.3}\protected@file@percent }
+\citation{ji-tpami2012-3d}
+\citation{tran-cvpr2015-learning}
+\citation{carreira-cvpr2017-kinetics}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{dosovitskiy-iclr2021-transformers}
+\citation{arnab-iccv2021-vivit}
+\citation{liu-cvpr2022-video}
+\citation{yan-cvpr2022-multiview}
+\citation{neimark-cvpr2021-video}
+\citation{arnab-iccv2021-vivit}
+\citation{fan-cvpr2021-multiscale}
+\citation{ridnik-nips2021-imagenet}
+\citation{sun-iccv2017-revisit}
+\citation{zhai-cvpr2022-scaling}
+\citation{tong-nips2022-videomae}
+\citation{li-cvpr2023-unmasked}
+\citation{wu-iccv2023-temporal}
+\citation{ji-tpami2012-3d}
+\citation{simon-nips2014-twostream}
+\citation{dosovitskiy-iclr2021-transformers}
+\citation{crasto-cvpr2019-mars}
+\citation{stroud-wacv2020-d3d}
+\citation{thoker-icip2019-crosskd}
+\citation{wang-aaai2024-gkd}
+\citation{li-acmmm2025-slakd}
+\citation{feichtenhofer-iccv2019-slowfast}
+\@writefile{toc}{\contentsline {section}{\numberline {3}模型方法}{8}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Problem Definition and Preliminary}{8}{subsection.3.1}\protected@file@percent }
+\newlabel{logit}{{1}{8}{Problem Definition and Preliminary}{equation.1}{}}
+\newlabel{ce_loss}{{4}{9}{Problem Definition and Preliminary}{equation.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}符号定义}{9}{subsection.3.2}\protected@file@percent }
+\newlabel{define}{{3.2}{9}{符号定义}{subsection.3.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Our Method模型结构图}}{9}{figure.2}\protected@file@percent }
+\newlabel{Method}{{2}{9}{Our Method模型结构图}{figure.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces 本文主要符号及其含义说明}}{10}{table.1}\protected@file@percent }
+\newlabel{tab.param_def}{{1}{10}{本文主要符号及其含义说明}{table.1}{}}
+\citation{wu-tist2023-poly}
+\citation{lei-tpami2024-survey}
+\citation{lee-icml2022-dataset}
+\citation{liu-nips2022-dataset}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}模型框架}{11}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}蒸馏自适应样本生成模块}{11}{subsection.3.4}\protected@file@percent }
+\newlabel{eq:dft}{{5}{12}{蒸馏自适应样本生成模块}{equation.5}{}}
+\newlabel{eq:teacher-mask}{{6}{12}{蒸馏自适应样本生成模块}{equation.6}{}}
+\newlabel{eq:mask}{{7}{12}{蒸馏自适应样本生成模块}{equation.7}{}}
+\newlabel{eq:idft}{{8}{13}{蒸馏自适应样本生成模块}{equation.8}{}}
+\newlabel{eq:align}{{9}{13}{蒸馏自适应样本生成模块}{equation.9}{}}
+\newlabel{eq:grad}{{10}{13}{蒸馏自适应样本生成模块}{equation.10}{}}
+\newlabel{eq:update}{{11}{13}{蒸馏自适应样本生成模块}{equation.11}{}}
+\newlabel{eq:gain}{{12}{13}{蒸馏自适应样本生成模块}{equation.12}{}}
+\citation{wang-tip2024-dkd}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}通道级动态蒸馏模块}{14}{subsection.3.5}\protected@file@percent }
+\newlabel{eq:feat}{{13}{14}{通道级动态蒸馏模块}{equation.13}{}}
+\newlabel{eq:sim}{{14}{14}{通道级动态蒸馏模块}{equation.14}{}}
+\newlabel{eq:aux}{{15}{14}{通道级动态蒸馏模块}{equation.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}损失函数}{14}{subsection.3.6}\protected@file@percent }
+\newlabel{eq:total_loss}{{16}{14}{损失函数}{equation.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.7}算法流程}{15}{subsection.3.7}\protected@file@percent }
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces  频域自适应适配蒸馏方法}}{15}{algocf.1}\protected@file@percent }
+\newlabel{alg:method}{{1}{15}{算法流程}{algocf.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.8}复杂度分析}{15}{subsection.3.8}\protected@file@percent }
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{yang-cvpr2020-temporal}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{zagoruyko-bmvc2017-residual}
+\citation{he-cvpr2016-residual}
+\citation{sandler-cvpr2018-mobilenetv2}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces  The algorithm flow of inference.}}{16}{algocf.2}\protected@file@percent }
+\newlabel{alg:inference}{{2}{16}{算法流程}{algocf.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{16}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Datasets}{16}{subsection.4.1}\protected@file@percent }
+\citation{zong-iclr2023-kd}
+\citation{li-aaai2023-ctkd}
+\citation{xie-cvpr2023-dynamickd}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{kay-arXiv2017-kinetics}
+\citation{liu-cvpr2022-video}
+\citation{pham-wacv2024-frequency}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Basic Model Parameters}}{17}{table.2}\protected@file@percent }
+\newlabel{tab.model}{{2}{17}{Basic Model Parameters}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Statistics of Dataset.}}{17}{table.3}\protected@file@percent }
+\newlabel{tbl:dataset}{{3}{17}{Statistics of Dataset}{table.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Evaluation Metrics}{17}{subsection.4.2}\protected@file@percent }
+\citation{geoffrey-arxiv2015-kd}
+\citation{zhao-cvpr2022-dkd}
+\citation{li-aaai2023-ctkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{romero-iclr2015-fitnets}
+\citation{shu-iccv2021-channelkd}
+\citation{wang-tip2024-dkd}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Experimental Setup}{18}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Compared Methods}{18}{subsection.4.4}\protected@file@percent }
+\citation{wang-aaai2024-gkd}
+\citation{tao-aaai2025-channelkd}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{yang-cvpr2020-temporal}
+\citation{liu-cvpr2022-video}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{yang-cvpr2020-temporal}
+\citation{liu-cvpr2022-video}
+\citation{zagoruyko-bmvc2017-residual}
+\citation{he-cvpr2016-residual}
+\citation{pham-wacv2024-frequency}
+\citation{he-cvpr2016-residual}
+\citation{zagoruyko-bmvc2017-residual}
+\citation{sandler-cvpr2018-mobilenetv2}
+\citation{soomro-arxiv2012-ucf101}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{yang-cvpr2020-temporal}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5} Quantitative Results}{19}{subsection.4.5}\protected@file@percent }
+\citation{soomro-arxiv2012-ucf101}
+\citation{yang-cvpr2020-temporal}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{tao-aaai2025-channelkd}
+\citation{yang-cvpr2020-temporal}
+\citation{geoffrey-arxiv2015-kd}
+\citation{soomro-arxiv2012-ucf101}
+\citation{soomro-arxiv2012-ucf101}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{yang-cvpr2020-temporal}
+\citation{geoffrey-arxiv2015-kd}
+\citation{romero-iclr2015-fitnets}
+\citation{shu-iccv2021-channelkd}
+\citation{zhao-cvpr2022-dkd}
+\citation{li-aaai2023-ctkd}
+\citation{wang-aaai2024-gkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{wang-tip2024-dkd}
+\citation{tao-aaai2025-channelkd}
+\citation{li-acmmm2025-slakd}
+\citation{huang-tpami2025-dist}
+\citation{kay-arXiv2017-kinetics}
+\citation{yang-cvpr2020-temporal}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{yang-cvpr2020-temporal}
+\citation{kay-arXiv2017-kinetics}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{yang-cvpr2020-temporal}
+\citation{kay-arXiv2017-kinetics}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{yang-cvpr2020-temporal}
+\citation{geoffrey-arxiv2015-kd}
+\citation{romero-iclr2015-fitnets}
+\citation{shu-iccv2021-channelkd}
+\citation{zhao-cvpr2022-dkd}
+\citation{li-aaai2023-ctkd}
+\citation{wang-aaai2024-gkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{wang-tip2024-dkd}
+\citation{tao-aaai2025-channelkd}
+\citation{li-acmmm2025-slakd}
+\citation{huang-tpami2025-dist}
+\citation{goyal-iccv2017-sthsth}
+\citation{yang-cvpr2020-temporal}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Performance on UCF101\cite  {soomro-arxiv2012-ucf101} in terms of Top-1/5 Accuracy (\%) / training time (min) pretrain on imagenet.}}{20}{table.4}\protected@file@percent }
+\newlabel{tbl:ucf101pretrain-img}{{4}{20}{Performance on UCF101\cite {soomro-arxiv2012-ucf101} in terms of Top-1/5 Accuracy (\%) / training time (min) pretrain on imagenet}{table.4}{}}
+\citation{goyal-iccv2017-sthsth}
+\citation{goyal-iccv2017-sthsth}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{liu-cvpr2022-video}
+\citation{yang-cvpr2020-temporal}
+\citation{geoffrey-arxiv2015-kd}
+\citation{romero-iclr2015-fitnets}
+\citation{shu-iccv2021-channelkd}
+\citation{zhao-cvpr2022-dkd}
+\citation{li-aaai2023-ctkd}
+\citation{wang-aaai2024-gkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{wang-tip2024-dkd}
+\citation{tao-aaai2025-channelkd}
+\citation{li-acmmm2025-slakd}
+\citation{huang-tpami2025-dist}
+\citation{wah-2011-cifar}
+\citation{wah-2011-cifar}
+\citation{geoffrey-arxiv2015-kd}
+\citation{romero-iclr2015-fitnets}
+\citation{li-aaai2023-ctkd}
+\citation{liu-iclr2023-norm}
+\citation{guo-cvpr2023-catbkd}
+\citation{yang-tpami2024-sckd}
+\citation{wang-cvpr2024-crosskd}
+\citation{pham-wacv2024-frequency}
+\citation{sun-cvpr2024-lskd}
+\citation{tao-aaai2025-channelkd}
+\citation{li-acmmm2025-slakd}
+\citation{huang-tpami2025-dist}
+\citation{krizhevsky-nips2012-imagenet}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Performance of SlowFast \cite  {feichtenhofer-iccv2019-slowfast} and Video SwinTransformer \cite  {liu-cvpr2022-video} and TPN\cite  {yang-cvpr2020-temporal}Action Recognition Models on the Kinetics-400 \cite  {kay-arXiv2017-kinetics} Dataset. Bold indicates the best results, and underline indicates the second-best results.}}{21}{table.5}\protected@file@percent }
+\newlabel{tab.SlowFast_VideoSwin_kinetics}{{5}{21}{Performance of SlowFast \cite {feichtenhofer-iccv2019-slowfast} and Video SwinTransformer \cite {liu-cvpr2022-video} and TPN\cite {yang-cvpr2020-temporal}Action Recognition Models on the Kinetics-400 \cite {kay-arXiv2017-kinetics} Dataset. Bold indicates the best results, and underline indicates the second-best results}{table.5}{}}
+\citation{geoffrey-arxiv2015-kd}
+\citation{romero-iclr2015-fitnets}
+\citation{shu-iccv2021-channelkd}
+\citation{zhao-cvpr2022-dkd}
+\citation{li-aaai2023-ctkd}
+\citation{wang-aaai2024-gkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{wang-tip2024-dkd}
+\citation{tao-aaai2025-channelkd}
+\citation{li-acmmm2025-slakd}
+\citation{huang-tpami2025-dist}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{kay-arXiv2017-kinetics}
+\citation{romero-iclr2015-fitnets}
+\citation{geoffrey-arxiv2015-kd}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{wah-2011-cifar}
+\citation{krizhevsky-nips2012-imagenet}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Performance on Sth-Sth v2\cite  {goyal-iccv2017-sthsth} Pretrained on Kinetics-400 in terms of Top-1/5 Accuracy (\%) / training time (min). ``$r$'' is sample selection ratio(only 16 frame).}}{22}{table.6}\protected@file@percent }
+\newlabel{tab.sth}{{6}{22}{Performance on Sth-Sth v2\cite {goyal-iccv2017-sthsth} Pretrained on Kinetics-400 in terms of Top-1/5 Accuracy (\%) / training time (min). ``$r$'' is sample selection ratio(only 16 frame)}{table.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Ablation Study}{22}{subsection.4.6}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Comparison of different knowledge distillation methods on CIFAR100 \cite  {wah-2011-cifar}.}}{23}{table.7}\protected@file@percent }
+\newlabel{tab.cifar}{{7}{23}{Comparison of different knowledge distillation methods on CIFAR100 \cite {wah-2011-cifar}}{table.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Top-1 and Top-5 accuracy (\%) on the ImageNet validation set using ResNet18 and MobileNet v2 as student networks.}}{24}{table.8}\protected@file@percent }
+\newlabel{tab:image}{{8}{24}{Top-1 and Top-5 accuracy (\%) on the ImageNet validation set using ResNet18 and MobileNet v2 as student networks}{table.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Statistics of Dataset.}}{24}{table.9}\protected@file@percent }
+\newlabel{tbl:dataset}{{9}{24}{Statistics of Dataset}{table.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Performance comparison on UCF101, Kinetics-400, Something-Something, CIFAR100, and ImageNet datasets.}}{24}{table.10}\protected@file@percent }
+\newlabel{tab.abtable}{{10}{24}{Performance comparison on UCF101, Kinetics-400, Something-Something, CIFAR100, and ImageNet datasets}{table.10}{}}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Performance comparison on UCF101, Kinetics-400, Something-Something, CIFAR100, and ImageNet datasets.}}{25}{table.11}\protected@file@percent }
+\newlabel{tab.compute}{{11}{25}{Performance comparison on UCF101, Kinetics-400, Something-Something, CIFAR100, and ImageNet datasets}{table.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces  Model performance of distillation with different $\lambda $}}{25}{table.12}\protected@file@percent }
+\newlabel{tab.lambda}{{12}{25}{Model performance of distillation with different $\lambda $}{table.12}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Model performance of distillation with different $\lambda $}}{25}{table.13}\protected@file@percent }
+\newlabel{tab.lambda-sth-k400}{{13}{25}{Model performance of distillation with different $\lambda $}{table.13}{}}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces  Model performance of distillation method with different $\gamma $}}{26}{table.14}\protected@file@percent }
+\newlabel{tab.gamma}{{14}{26}{Model performance of distillation method with different $\gamma $}{table.14}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Model performance of distillation with different $\gamma $}}{26}{table.15}\protected@file@percent }
+\newlabel{tab.gamma-sth-k400}{{15}{26}{Model performance of distillation with different $\gamma $}{table.15}{}}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces  Model performance of distillation method with different $\alpha $}}{27}{table.16}\protected@file@percent }
+\newlabel{tab.alpha}{{16}{27}{Model performance of distillation method with different $\alpha $}{table.16}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Model performance of distillation with different $\alpha $}}{27}{table.17}\protected@file@percent }
+\newlabel{tab.alpha-sth-k400}{{17}{27}{Model performance of distillation with different $\alpha $}{table.17}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces Model performance of distillation method with different $b$}}{27}{table.18}\protected@file@percent }
+\newlabel{tab.gamma_KD_data}{{18}{27}{Model performance of distillation method with different $b$}{table.18}{}}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces Model performance of distillation with different $b$}}{28}{table.19}\protected@file@percent }
+\newlabel{tab.b-sth-k400}{{19}{28}{Model performance of distillation with different $b$}{table.19}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces Model performance of distillation method with different curve}}{28}{table.20}\protected@file@percent }
+\newlabel{tab.update}{{20}{28}{Model performance of distillation method with different curve}{table.20}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces Model performance of distillation method with different curve}}{28}{table.21}\protected@file@percent }
+\newlabel{tab.update-sth}{{21}{28}{Model performance of distillation method with different curve}{table.21}{}}
+\citation{soomro-arxiv2012-ucf101}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\citation{tao-aaai2025-channelkd}
+\citation{geoffrey-arxiv2015-kd}
+\citation{zhao-cvpr2022-dkd}
+\citation{soomro-arxiv2012-ucf101}
+\citation{geoffrey-arxiv2015-kd}
+\citation{romero-iclr2015-fitnets}
+\citation{zhao-cvpr2022-dkd}
+\citation{li-aaai2023-ctkd}
+\citation{wang-aaai2024-gkd}
+\citation{wang-cvpr2024-crosskd}
+\citation{wang-tip2024-dkd}
+\citation{tao-aaai2025-channelkd}
+\citation{li-acmmm2025-slakd}
+\citation{soomro-arxiv2012-ucf101}
+\citation{soomro-arxiv2012-ucf101}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{wah-2011-cifar}
+\citation{goyal-iccv2017-sthsth}
+\citation{romero-iclr2015-fitnets}
+\citation{wang-aaai2024-gkd}
+\citation{wang-tip2024-dkd}
+\citation{tao-aaai2025-channelkd}
+\citation{huang-tpami2025-dist}
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Model performance of distillation method with different similarity method}}{29}{table.22}\protected@file@percent }
+\newlabel{tab.similarity}{{22}{29}{Model performance of distillation method with different similarity method}{table.22}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {23}{\ignorespaces Model performance of distillation method with different similarity method}}{29}{table.23}\protected@file@percent }
+\newlabel{tab.similarity-sth}{{23}{29}{Model performance of distillation method with different similarity method}{table.23}{}}
+\citation{feichtenhofer-iccv2019-slowfast}
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\citation{soomro-arxiv2012-ucf101}
+\citation{soomro-arxiv2012-ucf101}
+\citation{zhou-cvpr2016-ldf}
+\@writefile{lot}{\contentsline {table}{\numberline {24}{\ignorespaces Performance on UCF101\cite  {soomro-arxiv2012-ucf101} only Pretrained on Imagenet in terms of Top-1/5 Accuracy (\%).}}{30}{table.24}\protected@file@percent }
+\newlabel{tab:difmodel}{{24}{30}{Performance on UCF101\cite {soomro-arxiv2012-ucf101} only Pretrained on Imagenet in terms of Top-1/5 Accuracy (\%)}{table.24}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {25}{\ignorespaces Training Time comparison on UCF101\cite  {soomro-arxiv2012-ucf101}, Kinetics-400, and CIFAR100 datasets. ImageNet and Something-Something}}{30}{table.25}\protected@file@percent }
+\newlabel{tab.traintime}{{25}{30}{Training Time comparison on UCF101\cite {soomro-arxiv2012-ucf101}, Kinetics-400, and CIFAR100 datasets. ImageNet and Something-Something}{table.25}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Qualitative Result}{30}{section.5}\protected@file@percent }
+\citation{goyal-iccv2017-sthsth}
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces UCF101\cite  {soomro-arxiv2012-ucf101}数据集原始图像与生成图像上CAM\cite  {zhou-cvpr2016-ldf}可视化图}}{31}{figure.3}\protected@file@percent }
+\newlabel{fig:ucf101}{{3}{31}{UCF101\cite {soomro-arxiv2012-ucf101}数据集原始图像与生成图像上CAM\cite {zhou-cvpr2016-ldf}可视化图}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Sth-Sth v2\cite  {goyal-iccv2017-sthsth}数据集原始图像与生成图像上CAM可视化图}}{31}{figure.4}\protected@file@percent }
+\newlabel{fig:Sth}{{4}{31}{Sth-Sth v2\cite {goyal-iccv2017-sthsth}数据集原始图像与生成图像上CAM可视化图}{figure.4}{}}
+\citation{soomro-arxiv2012-ucf101}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Kinetics-400\cite  {kay-arXiv2017-kinetics}数据集原始图像与生成图像上CAM可视化图}}{32}{figure.5}\protected@file@percent }
+\newlabel{fig:k400}{{5}{32}{Kinetics-400\cite {kay-arXiv2017-kinetics}数据集原始图像与生成图像上CAM可视化图}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Channel fig}{32}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces The Channel fig on the UCF101 Dataset \cite  {soomro-arxiv2012-ucf101}}}{32}{figure.6}\protected@file@percent }
+\newlabel{fig:ucf-channel}{{6}{32}{The Channel fig on the UCF101 Dataset \cite {soomro-arxiv2012-ucf101}}{figure.6}{}}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces The Channel feature on the k400 Dataset \cite  {kay-arXiv2017-kinetics}}}{33}{figure.7}\protected@file@percent }
+\newlabel{fig:k400-channel}{{7}{33}{The Channel feature on the k400 Dataset \cite {kay-arXiv2017-kinetics}}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces The Channel feature on the sth-sth-v2 Dataset \cite  {goyal-iccv2017-sthsth}}}{33}{figure.8}\protected@file@percent }
+\newlabel{fig:sth-channel}{{8}{33}{The Channel feature on the sth-sth-v2 Dataset \cite {goyal-iccv2017-sthsth}}{figure.8}{}}
+\citation{soomro-arxiv2012-ucf101}
+\citation{kay-arXiv2017-kinetics}
+\citation{goyal-iccv2017-sthsth}
+\citation{soomro-arxiv2012-ucf101}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Failure Case}{34}{subsection.5.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces The failure case on the UCF101 Dataset \cite  {soomro-arxiv2012-ucf101}}}{34}{figure.9}\protected@file@percent }
+\newlabel{fig:ucf-fail}{{9}{34}{The failure case on the UCF101 Dataset \cite {soomro-arxiv2012-ucf101}}{figure.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}关于损失上下界分析以及可视化}{34}{subsection.5.3}\protected@file@percent }
+\citation{kay-arXiv2017-kinetics}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces The failure case on the k400 Dataset \cite  {kay-arXiv2017-kinetics}}}{35}{figure.10}\protected@file@percent }
+\newlabel{fig:k400-fail}{{10}{35}{The failure case on the k400 Dataset \cite {kay-arXiv2017-kinetics}}{figure.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces The failure case on the sth-sth-v2 Dataset \cite  {goyal-iccv2017-sthsth}}}{35}{figure.11}\protected@file@percent }
+\newlabel{fig:sth-fail}{{11}{35}{The failure case on the sth-sth-v2 Dataset \cite {goyal-iccv2017-sthsth}}{figure.11}{}}
+\newlabel{eq:align}{{17}{35}{关于损失上下界分析以及可视化}{equation.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces UCF101\cite  {kay-arXiv2017-kinetics}数据集各层教师与学生模型差异评估曲线}}{36}{figure.12}\protected@file@percent }
+\newlabel{fig:curve}{{12}{36}{UCF101\cite {kay-arXiv2017-kinetics}数据集各层教师与学生模型差异评估曲线}{figure.12}{}}
+\newlabel{eq:euclidean_expansion}{{20}{36}{关于损失上下界分析以及可视化}{equation.20}{}}
+\newlabel{eq:channel_extension}{{21}{36}{关于损失上下界分析以及可视化}{equation.21}{}}
+\bibdata{work2}
+\bibcite{krizhevsky-nips2012-imagenet}{{1}{}{{}}{{}}}
+\bibcite{arnab-iccv2021-vivit}{{2}{}{{}}{{}}}
+\bibcite{carreira-cvpr2017-kinetics}{{3}{}{{}}{{}}}
+\bibcite{cazenavette-cvpr2022-ddmtt}{{4}{}{{}}{{}}}
+\bibcite{crasto-cvpr2019-mars}{{5}{}{{}}{{}}}
+\bibcite{cui-cvpr2025-optical}{{6}{}{{}}{{}}}
+\bibcite{tao-aaai2025-channelkd}{{7}{}{{}}{{}}}
+\bibcite{dosovitskiy-iclr2021-transformers}{{8}{}{{}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{37}{section.6}\protected@file@percent }
+\bibcite{fan-cvpr2021-multiscale}{{9}{}{{}}{{}}}
+\bibcite{feichtenhofer-iccv2019-slowfast}{{10}{}{{}}{{}}}
+\bibcite{thoker-icip2019-crosskd}{{11}{}{{}}{{}}}
+\bibcite{geoffrey-arxiv2015-kd}{{12}{}{{}}{{}}}
+\bibcite{goyal-iccv2017-sthsth}{{13}{}{{}}{{}}}
+\bibcite{gu-arxiv2023-mamba}{{14}{}{{}}{{}}}
+\bibcite{guo-tpami2024-pixelkd}{{15}{}{{}}{{}}}
+\bibcite{guo-cvpr2023-catbkd}{{16}{}{{}}{{}}}
+\bibcite{han-nips2015-learning}{{17}{}{{}}{{}}}
+\bibcite{he-cvpr2016-residual}{{18}{}{{}}{{}}}
+\bibcite{horn-ai1981-determining}{{19}{}{{}}{{}}}
+\bibcite{huang-tpami2025-dist}{{20}{}{{}}{{}}}
+\bibcite{ji-tpami2012-3d}{{21}{}{{}}{{}}}
+\bibcite{kay-arXiv2017-kinetics}{{22}{}{{}}{{}}}
+\bibcite{wah-2011-cifar}{{23}{}{{}}{{}}}
+\bibcite{lee-icml2022-dataset}{{24}{}{{}}{{}}}
+\bibcite{lei-tpami2024-survey}{{25}{}{{}}{{}}}
+\bibcite{li-cvpr2023-unmasked}{{26}{}{{}}{{}}}
+\bibcite{li-acmmm2025-slakd}{{27}{}{{}}{{}}}
+\bibcite{li-aaai2023-ctkd}{{28}{}{{}}{{}}}
+\bibcite{liu-iclr2023-fkd}{{29}{}{{}}{{}}}
+\bibcite{liu-nips2022-dataset}{{30}{}{{}}{{}}}
+\bibcite{liu-iclr2023-norm}{{31}{}{{}}{{}}}
+\bibcite{liu-cvpr2022-video}{{32}{}{{}}{{}}}
+\bibcite{neimark-cvpr2021-video}{{33}{}{{}}{{}}}
+\bibcite{passban-aaai2021-alpkd}{{34}{}{{}}{{}}}
+\bibcite{peng-icml2024-auxkd}{{35}{}{{}}{{}}}
+\bibcite{pham-wacv2024-frequency}{{36}{}{{}}{{}}}
+\bibcite{ridnik-nips2021-imagenet}{{37}{}{{}}{{}}}
+\bibcite{romero-iclr2015-fitnets}{{38}{}{{}}{{}}}
+\bibcite{sandler-cvpr2018-mobilenetv2}{{39}{}{{}}{{}}}
+\bibcite{shu-iccv2021-channelkd}{{40}{}{{}}{{}}}
+\bibcite{simon-nips2014-twostream}{{41}{}{{}}{{}}}
+\bibcite{soomro-arxiv2012-ucf101}{{42}{}{{}}{{}}}
+\bibcite{stroud-wacv2020-d3d}{{43}{}{{}}{{}}}
+\bibcite{sun-iccv2017-revisit}{{44}{}{{}}{{}}}
+\bibcite{sun-cvpr2024-lskd}{{45}{}{{}}{{}}}
+\bibcite{tong-nips2022-videomae}{{46}{}{{}}{{}}}
+\bibcite{tran-cvpr2015-learning}{{47}{}{{}}{{}}}
+\bibcite{vaswani-nips2017-attention}{{48}{}{{}}{{}}}
+\bibcite{wang-aaai2024-gkd}{{49}{}{{}}{{}}}
+\bibcite{wang-cvpr2024-crosskd}{{50}{}{{}}{{}}}
+\bibcite{wang-eccv2016-action}{{51}{}{{}}{{}}}
+\bibcite{wang-tip2024-dkd}{{52}{}{{}}{{}}}
+\bibcite{wang-cvpr2025-ncfm}{{53}{}{{}}{{}}}
+\bibcite{wang-iclr2019-dataset}{{54}{}{{}}{{}}}
+\bibcite{wang-nips2020-fusion}{{55}{}{{}}{{}}}
+\bibcite{wang-cvpr2024-vdsd}{{56}{}{{}}{{}}}
+\bibcite{wu-eccv2022-tinyvit}{{57}{}{{}}{{}}}
+\bibcite{wu-iccv2023-temporal}{{58}{}{{}}{{}}}
+\bibcite{wu-tist2023-poly}{{59}{}{{}}{{}}}
+\bibcite{xie-cvpr2023-dynamickd}{{60}{}{{}}{{}}}
+\bibcite{yan-cvpr2022-multiview}{{61}{}{{}}{{}}}
+\bibcite{yang-cvpr2020-temporal}{{62}{}{{}}{{}}}
+\bibcite{yang-tpami2024-sckd}{{63}{}{{}}{{}}}
+\bibcite{Yang-iccv2023-unifiedkd}{{64}{}{{}}{{}}}
+\bibcite{zagoruyko-bmvc2017-residual}{{65}{}{{}}{{}}}
+\bibcite{zhai-cvpr2022-scaling}{{66}{}{{}}{{}}}
+\bibcite{zhao-iclr2021-dcwgm}{{67}{}{{}}{{}}}
+\bibcite{zhao-cvpr2022-dkd}{{68}{}{{}}{{}}}
+\bibcite{zhao-arxiv2024-idtd}{{69}{}{{}}{{}}}
+\bibcite{zhou-cvpr2016-ldf}{{70}{}{{}}{{}}}
+\bibcite{zong-iclr2023-kd}{{71}{}{{}}{{}}}
+\providecommand\NAT@force@numbers{}\NAT@force@numbers
+\gdef \@abspage@last{43}

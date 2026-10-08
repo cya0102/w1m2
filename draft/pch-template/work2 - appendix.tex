@@ -1,0 +1,255 @@
+% !TeX encoding = UTF-8
+% !TeX program = xelatex
+% !TeX spellcheck = en_US
+
+\documentclass[10.5pt,letterpaper]{article}
+\usepackage[letterpaper, total={6.5in, 9in}]{geometry}
+\usepackage{ctex}
+%\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{lineno}
+\modulolinenumbers[5]  % line number gap
+\usepackage{amsmath,amssymb,bm}
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{algorithmic}
+%\usepackage{bbding}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{color}
+\usepackage{times}
+\usepackage{longtable}
+\usepackage{comment}
+\usepackage[ruled,linesnumbered]{algorithm2e}
+%\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+%\usepackage[ruled]{algorithm2e}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyphenat}
+\special{dvipdfmx:config z 0} %取消PDF压缩，加快速度，最终版本生成的时候最好把这句话注释掉
+
+\usepackage{url}            % simple URL typesetting
+
+%\usepackage{microtype}      % microtypography
+\usepackage{multirow}
+%\usepackage[round]{natbib}
+\usepackage[square,sort,comma,numbers]{natbib}
+%\usepackage[numbers]{natbib}
+%\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+
+%\usepackage{siunitx}
+\usepackage{subfigure}
+\usepackage{makecell}
+%\usepackage{colortbl}
+%\usepackage{ulem}
+%\usepackage[table,xcdraw,dvipsnames]{xcolor}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}      % hyperlinks
+\usepackage[section]{placeins}
+
+\frenchspacing
+
+%\journal{Journal or Conference}
+
+%%%%%%%%%%%%%%%%%%%%%%%
+%% Elsevier bibliography styles
+%%%%%%%%%%%%%%%%%%%%%%%
+%% To change the style, put a % in front of the second line of the current style and
+%% remove the % from the second line of the style you would like to use.
+%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{numcompress}
+%\bibliographystyle{elsarticle-num}
+%\bibliographystyle{ieee}
+\bibliographystyle{plain}
+%\bibliographystyle{plainnat}
+%\bibliographystyle{abbrv}
+
+%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\tr}{\textrm{Tr}}
+\newcommand{\eg}{e.g.}
+\newcommand{\ie}{i.e.}
+\newcommand{\wrt}{w.r.t.}
+\newcommand{\etal}{et al.}
+\newcommand{\etc}{e.t.c.}
+% https://www.overleaf.com/learn/latex/Using_colours_in_LaTeX
+%\newcommand{\NOTE}[1]{{\color{Orchid}{#1}}}
+%
+%\newcommand{\Ti}{{\rm T}^i}
+%\newcommand{\Si}{\textbf{S}^i}
+%\newcommand{\Qi}{\textbf{Q}^i}
+%\newcommand{\f}[1]{f_{\theta_#1}}
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}   % Use Input in the format of Algorithm
+\renewcommand{\algorithmicensure}{\textbf{Output:}}  % Use Output in the format of Algorithm
+%\renewcommand{\bm}{\textbf}
+
+% Fix the font size of the boldface digits
+\DeclareFixedFont{\mf}{OT1}{ptm}{m}{n}{10pt}
+\DeclareFixedFont{\mfb}{OT1}{ptm}{bx}{n}{10pt}
+
+\setlength{\pdfpagewidth}{8.5in}  % DO NOT CHANGE THIS
+\setlength{\pdfpageheight}{11in}  % DO NOT CHANGE THIS
+
+\begin{document}
+
+
+% Abstract
+
+
+\section{Experiments}
+\subsection{ Quantitative Results}
+
+
+\begin{table}[!t]
+	\centering
+	\caption{Performance on Kinetics-400 in terms of Top-1/5 Accuracy (\%). Red rows indicate the gain compared to the baseline.}
+	\label{tab:difmodel-kinetics}
+	\scalebox{0.8}{
+		\setlength{\tabcolsep}{3mm}{
+			\begin{tabular}{l l ccc cc}
+				\toprule[0.75pt]
+				\multirow{2}{*}{Method} & \multirow{2}{*}{Type} &&
+				\multicolumn{2}{c}{TPN $\rightarrow$ SlowFast} & 
+				\multicolumn{2}{c}{VideoST$\rightarrow$SlowFast} \\
+				\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+				& & & Top1$\uparrow$ & Top5$\uparrow$ & Top1$\uparrow$ & Top5$\uparrow$ \\
+				\midrule[0.5pt]
+				\multirow{2}{*}{-} & Teac. & & 63.23 & 84.46 & 74.07 & 91.05 \\
+				& Stud. & & 51.08 & 76.05 & 51.08 & 76.05 \\
+				\midrule[0.5pt]
+				\multirow{1}{*}{\makecell[l]{KD \cite{geoffrey-arxiv2015-kd} }} 
+				& arXiv'15 & & 52.41 & 77.12 & 53.62 & 78.45 \\
+				\multirow{1}{*}{\makecell[l]{FitNet\cite{romero-iclr2015-fitnets} \\}} 
+								& ICLR'15 & & 53.15 & 77.85 & 54.28 & 79.12 \\
+					
+				\multirow{1}{*}{\makecell[l]{DKD \cite{zhao-cvpr2022-dkd}}} 
+				& CVPR'22 & & 56.82 & 80.34 & 62.45 & 84.67 \\
+
+				\multirow{1}{*}{\makecell[l]{CTKD\cite{li-aaai2023-ctkd} }}
+				& AAAI'23 & & 57.54 & 80.92 & 64.12 & 85.33 \\
+
+				\multirow{1}{*}{\makecell[l]{GKD\cite{wang-aaai2024-gkd} }}
+				& AAAI'24 & & 59.12 & 81.67 & 67.85 & 87.42 \\
+
+				\multirow{1}{*}{\makecell[l]{CrossKD \cite{wang-cvpr2024-crosskd} }}
+				& CVPR'24 & & 60.05 & 82.41 & 69.34 & 88.21 \\
+				\multirow{1}{*}{\makecell[l]{DualKD \cite{wang-tip2024-dkd}\\ }}
+				& TIP'24 & & 59.88 & 82.15 & 68.92 & 87.98 \\
+				DCSF-KD	\cite{tao-aaai2025-channelkd} &AAAI'25   && 61.23 & 83.14 & 71.12 & 89.45 \\
+				SAKD\cite{li-acmmm2025-slakd} & MM'25 && \underline{62.15} & \underline{83.89} & \underline{72.58} & \underline{90.32} \\
+				Ours & && {\bf 62.87} & {\bf 84.12} & {\bf 73.65} & {\bf 90.84} \\
+				\toprule[0.75pt]
+			\end{tabular}
+		}
+	}
+\end{table}
+\begin{table}[!t]
+	\centering
+	\caption{Performance on Sth-Sthv2 in terms of Top-1/5 Accuracy (\%).}
+	\label{tab:difmodel-sth}
+	\scalebox{0.8}{
+		\setlength{\tabcolsep}{3mm}{
+			\begin{tabular}{l l ccc cc}
+				\toprule[0.75pt]
+				\multirow{2}{*}{Method} & \multirow{2}{*}{Type} &&
+				\multicolumn{2}{c}{TPN $\rightarrow$ SlowFast} & 
+				\multicolumn{2}{c}{VideoST$\rightarrow$SlowFast} \\
+				\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+				& & & Top1$\uparrow$ & Top5$\uparrow$ & Top1$\uparrow$ & Top5$\uparrow$ \\
+				\midrule[0.5pt]
+				\multirow{2}{*}{-} & Teac. & & 55.10 & 83.92 & 58.17 & 86.28 \\
+				& Stud. & & 43.96 & 71.70 & 43.96 & 71.70 \\
+				\midrule[0.5pt]
+				\multirow{1}{*}{\makecell[l]{KD \cite{geoffrey-arxiv2015-kd} }} 
+				& arXiv'15 & & 45.12 & 73.05 & 46.28 & 74.15 \\
+				\multirow{1}{*}{\makecell[l]{FitNet\cite{romero-iclr2015-fitnets} \\}} 
+								& ICLR'15 & & 45.85 & 73.68 & 47.02 & 74.92 \\
+					
+				\multirow{1}{*}{\makecell[l]{DKD \cite{zhao-cvpr2022-dkd}}} 
+				& CVPR'22 & & 49.32 & 78.14 & 51.45 & 80.36 \\
+
+				\multirow{1}{*}{\makecell[l]{CTKD\cite{li-aaai2023-ctkd} }}
+				& AAAI'23 & & 50.15 & 78.96 & 52.88 & 81.45 \\
+
+				\multirow{1}{*}{\makecell[l]{GKD\cite{wang-aaai2024-gkd} }}
+				& AAAI'24 & & 51.74 & 80.22 & 54.32 & 82.91 \\
+
+				\multirow{1}{*}{\makecell[l]{CrossKD \cite{wang-cvpr2024-crosskd} }}
+				& CVPR'24 & & 52.68 & 81.15 & 55.60 & 83.84 \\
+				\multirow{1}{*}{\makecell[l]{DualKD \cite{wang-tip2024-dkd}\\ }}
+				& TIP'24 & & 52.45 & 80.92 & 55.18 & 83.52 \\
+				DCSF-KD	\cite{tao-aaai2025-channelkd} &AAAI'25   & & 53.52 & 82.04 & 56.45 & 84.72 \\
+				SAKD\cite{li-acmmm2025-slakd} & MM'25 & & \underline{54.28} & \underline{82.87} & \underline{57.21} & \underline{85.45} \\
+				Ours & & & {\bf 54.82} & {\bf 83.56} & {\bf 57.94} & {\bf 86.03} \\
+				\toprule[0.75pt]
+			\end{tabular}
+		}
+	}
+\end{table}
+实验结果表明，本方法在 Kinetics-400 和 Sth-Sthv2 两个核心数据集上均展现出卓越的知识迁移能力。在侧重空间语义的 Kinetics-400 任务中，本方法将学生模型的 Top-1 准确率提升至 62.87\% 和 73.65\%，与教师模型的性能差距减少至 1\% 以内，显著优于 SAKD 等目前最新方法；而在更依赖时序建模的 Sth-Sthv2 任务上，本方法的表现提升突出，将学生模型从 43.96\%的准确率提升至54.82\% ，甚至在 VideoST -> SlowFast 实验中准确率达到 57.94\%,均与原先的教师模型差距不到1\%。
+\begin{table}[!htb]
+	\centering
+	\caption{Model performance of distillation method with Stage 1 align math on UCF101, Kinetics-400, and Sth-Sthv2. Red rows indicate the gain compared to the baseline Align(1*1cov).}
+	\small
+	\scalebox{0.8}{
+		\setlength{\tabcolsep}{0.6mm}{
+			\begin{tabular}{l ccccccc cccccc cccccc}
+				\toprule[0.75pt]
+				\multirow{3}{*}{$Align$} && \multicolumn{5}{c}{UCF101\cite{soomro-arxiv2012-ucf101}} &&\multicolumn{5}{c}{Kinetics-400\cite{kay-arXiv2017-kinetics}} &&\multicolumn{5}{c}{Sth-Sthv2} &\\
+				\cmidrule(lr{0.5pt}){3-7}  \cmidrule(lr{0.5pt}){9-13} \cmidrule(lr{0.5pt}){15-19}
+				&&\multicolumn{2}{c}{Top1$\uparrow$} & &\multicolumn{2}{c}{Top5$\uparrow$} &&\multicolumn{2}{c}{Top1$\uparrow$} & &\multicolumn{2}{c}{Top5$\uparrow$} &&\multicolumn{2}{c}{Top1$\uparrow$} & &\multicolumn{2}{c}{Top5$\uparrow$} &  \\ 
+				\cmidrule(lr{0.5pt}){3-4}  \cmidrule(lr{0.5pt}){6-7} \cmidrule(lr{0.5pt}){9-10}  \cmidrule(lr{0.5pt}){12-13} \cmidrule(lr{0.5pt}){15-16} \cmidrule(lr{0.5pt}){18-19}
+				&& SlowFast	& Video ST && SlowFast	& Video ST &&  SlowFast	& Video ST && SlowFast	& Video ST && SlowFast	& Video ST && SlowFast	& Video ST &\\ 
+				\midrule[0.5pt]
+				Align(1*1cov)   && 85.23  & 86.27 && 95.89 & 96.63 && 55.64 & 72.81 && 81.23 & 91.28 && 45.62 & 73.94 && 54.39 & 84.22 & \\    
+				\midrule[0.5pt]
+				Attention       && 85.38  & 86.99 && 96.10 & 96.78 && 56.02 & 73.19 && \underline{81.89} & 91.83 && 45.98 & 74.21 && 54.88 & 84.65 & \\ 
+				{\color{red} Gain} && {\color{red} +0.15} & {\color{red} +0.72} && {\color{red} +0.21} & {\color{red} +0.15} && {\color{red} +0.38} & {\color{red} +0.38} && {\color{red} +0.66} & {\color{red} +0.55} && {\color{red} +0.36} & {\color{red} +0.27} && {\color{red} +0.49} & {\color{red} +0.43} & \\
+				\cmidrule(lr{0.5pt}){1-20}
+				Frequence Align && 87.29  & 87.93 && 97.31 & 97.23 && 58.32 & 74.38 && 82.93 & 91.73 && 46.45 & 75.12 && 56.12 & 85.80 & \\
+				{\color{red} Gain} && {\color{red} +2.06} & {\color{red} +1.66} && {\color{red} +1.42} & {\color{red} +0.60} && {\color{red} +2.68} & {\color{red} +1.57} && {\color{red} +1.70} & {\color{red} +0.45} && {\color{red} +0.83} & {\color{red} +1.18} && {\color{red} +1.73} & {\color{red} +1.58} & \\
+				\cmidrule(lr{0.5pt}){1-20}
+				Numerator       && \underline{87.38} & {\bf 88.12} && \underline{97.52} & \underline{97.82} && \underline{59.38} & \underline{75.02} && 81.76 & \underline{92.38} && \underline{46.91} & \underline{75.66} && \underline{56.84} & \underline{86.15} & \\
+				{\color{red} Gain} && {\color{red} +2.15} & {\color{red} +1.85} && {\color{red} +1.63} & {\color{red} +1.19} && {\color{red} +3.74} & {\color{red} +2.21} && {\color{red} +0.53} & {\color{red} +1.10} && {\color{red} +1.29} & {\color{red} +1.72} && {\color{red} +2.45} & {\color{red} +1.93} & \\
+				\midrule[0.5pt]
+				Ours            && {\bf 88.42} & \underline{88.04} && {\bf 97.80} & {\bf 98.07} && {\bf 60.23} & {\bf 75.83} && {\bf 82.38} & {\bf 93.22} && {\bf 47.28} & {\bf 76.03} && {\bf 57.31} & {\bf 86.87} & \\
+				{\color{red} Gain} && {\color{red} +3.19} & {\color{red} +1.77} && {\color{red} +1.91} & {\color{red} +1.44} && {\color{red} +4.59} & {\color{red} +3.02} && {\color{red} +1.15} & {\color{red} +1.94} && {\color{red} +1.66} & {\color{red} +2.09} && {\color{red} +2.92} & {\color{red} +2.65} & \\
+				\bottomrule[0.75pt]
+			\end{tabular}
+		}
+	}
+	\label{tab.similarity-ucf101}
+\end{table}
+
+在第一阶段中，采用了加权特征损失 $L_{fea}^{kd1}$，并在表\ref{tab.similarity-ucf101}中对比了不同的对齐策略。第 1 行作为基准（Baseline），仅使用 $1 \times 1$ 卷积进行通道对齐。在此基础上，第 2 行加入了两个注意力层以增强教师与学生模型间的空间特征对齐。第 3 行转而在频域进行特征对齐，第 4 行则将质心频率差（Centroid Frequency Difference）直接作为对齐权重。在 UCF101 数据集上，相比于基准，我们的方法（Ours）通过采用中心频率差的倒数作为特征 MSE 损失的权重，实现了约 1.77\% 至 3.19\% 的显著性能提升。在 Kinetics-400 数据集上，频域对齐（第 3 行）表现出明显优于空间对齐方法（第 1 和 2 行）的增益，而分子加权（第 4 行）在频域对齐的基础上进一步优化了结果。最后，在 Sth-Sthv2 数据集上，本文的策略再次超越了所有对比方法，最高带来了 2.09\% 和 2.65\% 的 Top-1/5 精度增长。Ours 方案采用了倒数加权策略，这充分考虑了训练初期中心频率不稳定的事实，在频率差异较大时适度抑制特征对齐的权重，从而避免了无效的监督信号对训练的干扰，最终在三个数据集上均取得了最佳性能。
+
+
+
+%\begin{table}[!htb]
+%        \centering
+%         \caption{Result on UCF101 between different model.}
+%          \label{tab:ucfmamba}
+%        \scalebox{0.8}{
+%            \setlength{\tabcolsep}{0.5mm}{
+%                \begin{tabular}{ll cc cc cc cc}
+%                    \toprule[0.75pt]
+%                    \multirow{2}{*}{Method} & \multirow{2}{*}{Type} &  
+%                    \multicolumn{2}{c}{VM-M/VM-T} &  
+%                    \multicolumn{2}{c}{Swin-B/Swin-T} & 
+%                    \multicolumn{2}{c}{Swin-B/VM-T} & 
+%                    \multicolumn{2}{c}{Swin-B/SF4-16} \\ 
+%                    \cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
+%                    & & Top1$\uparrow$ & Top5$\uparrow$ & Top1$\uparrow$ & Top5$\uparrow$ & Top1$\uparrow$ & Top5$\uparrow$ & Top1$\uparrow$ & Top5$\uparrow$ \\
+%                    \midrule[0.5pt]
+%                    - & Teac. & 92.49 & 98.73 & 89.29 & 98.21 & 89.29 & 98.21 & 89.29 & 98.21 \\
+%                    - & Stud. & 87.20 & 97.35 & 84.40 & 96.17 & 87.20 & 97.35 & 83.13 & 95.72 \\
+%                    \midrule[0.5pt]
+%                    SAKD\cite{li-acmmm2025-slakd} & MM'25 & 87.92 & 97.51 & 87.94 & 97.42 & 87.62 & 97.45 & 87.93 & 97.19 \\
+%                    \bf Ours & - & \bf 89.13 & \bf 98.12 & \bf 89.12 & \bf 98.37 & \bf 88.87 & \bf 97.98 & \bf 88.67 & \bf 97.88 \\
+%                    \bf Gain & - & \bf\textcolor{red}{+1.21} & \bf\textcolor{red}{+0.61} & \bf\textcolor{red}{+1.18} & \bf\textcolor{red}{+0.95} & \bf\textcolor{red}{+1.25} & \bf\textcolor{red}{+0.53} & \bf\textcolor{red}{+0.74} & \bf\textcolor{red}{+0.69} \\
+%                    \bottomrule[0.75pt]
+%                \end{tabular}
+%            }
+%        }
+%\end{table}
+
+\bibliography{work2}
+\end{document}

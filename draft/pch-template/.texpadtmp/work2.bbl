@@ -1,0 +1,358 @@
+\begin{thebibliography}{10}
+
+\bibitem{krizhevsky-nips2012-imagenet}
+Geoffrey~Hinton Alex~Krizhevsky, Ilya~Sutskever.
+\newblock Imagenet classification with deep convolutional neural networks.
+\newblock {\em Advances in Neural Information Processing Systems (NeurIPS)}, pages 1106--1114, 2012.
+
+\bibitem{arnab-iccv2021-vivit}
+Anurag Arnab, Mostafa Dehghani, Georg Heigold, Chen Sun, Mario Lucic, and Cordelia Schmid.
+\newblock Vivit: {A} video vision transformer.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 6816--6826, 2021.
+
+\bibitem{carreira-cvpr2017-kinetics}
+Joo Carreira and Andrew Zisserman.
+\newblock Quo vadis, action recognition? {a} new model and the kinetics dataset.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 4724--4733, 2017.
+
+\bibitem{cazenavette-cvpr2022-ddmtt}
+George Cazenavette, Tongzhou Wang, Antonio Torralba, Alexei~A. Efros, and Jun{-}Yan Zhu.
+\newblock Dataset distillation by matching training trajectories.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 4749--4758, 2022.
+
+\bibitem{crasto-cvpr2019-mars}
+Nieves Crasto, Philippe Weinzaepfel, Karteek Alahari, and Cordelia Schmid.
+\newblock {MARS:} motion-augmented {rgb} stream for action recognition.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 7882--7891, 2019.
+
+\bibitem{cui-cvpr2025-optical}
+Xiao Cui, Yulei Qin, Wengang Zhou, Hongsheng Li, and Houqiang Li.
+\newblock {OPTICAL:} leveraging optimal transport for contribution allocation in dataset distillation.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 15245--15254, 2025.
+
+\bibitem{tao-aaai2025-channelkd}
+Tao Dai, Yang Lin, Hang Guo, Jinbao Wang, and Zexuan Zhu.
+\newblock {DCSF-KD:} dynamic channel-wise spatial feature knowledge distillation for object detection.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)}, pages 2627--2635, 2025.
+
+\bibitem{dosovitskiy-iclr2021-transformers}
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby.
+\newblock An image is worth 16x16 words: Transformers for image recognition at scale.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2021.
+
+\bibitem{fan-cvpr2021-multiscale}
+Haoqi Fan, Bo~Xiong, Karttikeya Mangalam, Yanghao Li, Zhicheng Yan, Jitendra Malik, and Christoph Feichtenhofer.
+\newblock Multiscale vision transformers.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 6824--6835, 2021.
+
+\bibitem{feichtenhofer-iccv2019-slowfast}
+Christoph Feichtenhofer, Haoqi Fan, Jitendra Malik, and Kaiming He.
+\newblock Slowfast networks for video recognition.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 6202--6211, 2019.
+
+\bibitem{thoker-icip2019-crosskd}
+Juergen~Gall Fida Mohammad~Thoker.
+\newblock Cross-modal knowledge distillation for action recognition.
+\newblock In {\em Proceedings of the IEEE International Conference on Image Processing (ICIP)}, pages 6--10, 2019.
+
+\bibitem{geoffrey-arxiv2015-kd}
+Oriol~Vinyals Geoffrey~Hinton and Jeffrey Dean.
+\newblock Distilling the knowledge in a neural network.
+\newblock {\em arXiv preprint}, arXiv:1503.02531, 2015.
+
+\bibitem{goyal-iccv2017-sthsth}
+Raghav Goyal, Samira~Ebrahimi Kahou, Vincent Michalski, Joanna Materzynska, Susanne Westphal, Heuna Kim, Valentin Haenel, Ingo Fr{\&quot;{u}}nd, Peter Yianilos, Moritz Mueller{-}Freitag, Florian Hoppe, Christian Thurau, Ingo Bax, and Roland Memisevic.
+\newblock The "something something" video database for learning and evaluating visual common sense.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 5843--5851, 2017.
+
+\bibitem{gu-arxiv2023-mamba}
+Albert Gu and Tri Dao.
+\newblock Mamba: Linear-time sequence modeling with selective state spaces.
+\newblock {\em arXiv preprint arXiv:2312.00752}, 2023.
+
+\bibitem{guo-tpami2024-pixelkd}
+Guangyu Guo, Dingwen Zhang, Longfei Han, Nian Liu, Ming-Ming Cheng, and Junwei Han.
+\newblock Pixel distillation: Cost-flexible distillation across image sizes and heterogeneous networks.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI)}, 46:9536--9550, 2024.
+
+\bibitem{guo-cvpr2023-catbkd}
+Ziyao Guo, Haonan Yan, Hui Li, and Xiaodong Lin.
+\newblock Class attention transfer based knowledge distillation.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 11868--11877, 2023.
+
+\bibitem{han-nips2015-learning}
+Song Han, Jeff Pool, John Tran, and William Dally.
+\newblock Learning both weights and connections for efficient neural network.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, pages 1135--1143, 2015.
+
+\bibitem{he-cvpr2016-residual}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 770--778, 2016.
+
+\bibitem{horn-ai1981-determining}
+Berthold~KP Horn and Brian~G Schunck.
+\newblock Determining optical flow.
+\newblock {\em Artificial intelligence}, 17:185--203, 1981.
+
+\bibitem{huang-tpami2025-dist}
+Tao Huang, Shan You, Fei Wang, Chen Qian, and Chang Xu.
+\newblock {DIST+:} knowledge distillation from a stronger adaptive teacher.
+\newblock {\em IEEE Transactions Pattern Analysis and Machine Intelligence (TPAMI)}, 47:5571--5585, 2025.
+
+\bibitem{ji-tpami2012-3d}
+Shuiwang Ji, Wei Xu, Ming Yang, and Kai Yu.
+\newblock 3d convolutional neural networks for human action recognition.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI)}, 35:221--231, 2012.
+
+\bibitem{kay-arXiv2017-kinetics}
+Will Kay, Joao Carreira, Karen Simonyan, Brian Zhang, Chloe Hillier, Sudheendra Vijayanarasimhan, Fabio Viola, Tim Green, Trevor Back, Paul Natsev, Mustafa Suleyman, and Andrew Zisserman.
+\newblock The kinetics human action video dataset.
+\newblock {\em arXiv preprint arXiv:1705.06950}, 2017.
+
+\bibitem{wah-2011-cifar}
+Alex Krizhevsky and Geoffrey Hinton.
+\newblock Learning multiple layers of features from tiny images.
+\newblock Technical report, Canadian Institute for Advanced Research, 2009.
+
+\bibitem{lee-icml2022-dataset}
+Saehyung Lee, Sanghyuk Chun, Sangwon Jung, Sangdoo Yun, and Sungroh Yoon.
+\newblock Dataset condensation with contrastive signals.
+\newblock In {\em Proceedings of the International Conference on Machine Learning (ICML)}, volume 162, pages 12352--12364, 2022.
+
+\bibitem{lei-tpami2024-survey}
+Shiye Lei and Dacheng Tao.
+\newblock A comprehensive survey of dataset distillation.
+\newblock {\em IEEE Transactions Pattern Analysis and Machine Intelligence (TPAMI)}, 46(1):17--32, 2024.
+
+\bibitem{li-cvpr2023-unmasked}
+Kunchang Li, Yali Wang, Yizhuo Li, Yi~Wang, Yinan He, Limin Wang, and Yu~Qiao.
+\newblock Unmasked teacher: Towards training-efficient video foundation models.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 19948--19960, 2023.
+
+\bibitem{li-acmmm2025-slakd}
+Ping Li, Chenhao Ping, Wenxiao Wang, and Mingli Song.
+\newblock Sample-level adaptive knowledge distillation for action recognition.
+\newblock {\em Association for Computing Machinery(ACM MM)}, pages 544--552, 2025.
+
+\bibitem{li-aaai2023-ctkd}
+Zheng Li, Xiang Li, Lingfeng Yang, Borui Zhao, Renjie Song, Lei Luo, Jun Li, and Jian Yang.
+\newblock Curriculum temperature for knowledge distillation.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)}, pages 1504--1512, 2023.
+
+\bibitem{liu-iclr2023-fkd}
+Dongyang Liu, Meina Kan, Shiguang Shan, and Xilin Chen.
+\newblock Function-consistent feature distillation.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{liu-nips2022-dataset}
+Songhua Liu, Kai Wang, Xingyi Yang, Jingwen Ye, and Xinchao Wang.
+\newblock Dataset distillation via factorization.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem{liu-iclr2023-norm}
+Xiaolong Liu, Lujun Li, Chao Li, and Anbang Yao.
+\newblock {NORM:} knowledge distillation via n-to-one representation matching.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{liu-cvpr2022-video}
+Ze~Liu, Jia Ning, Yue Cao, Yixuan Wei, Zheng Zhang, Stephen Lin, and Han Hu.
+\newblock Video swin transformer.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 3202--3211, 2022.
+
+\bibitem{neimark-cvpr2021-video}
+Daniel Neimark, Omri Bar, Maya Zohar, and Dotan Asselmann.
+\newblock Video transformer network.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 3163--3172, 2021.
+
+\bibitem{passban-aaai2021-alpkd}
+Peyman Passban, Yimeng Wu, Mehdi Rezagholizadeh, and Qun Liu.
+\newblock {ALP-KD:} attention-based layer projection for knowledge distillation.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)}, pages 13657--13665, 2021.
+
+\bibitem{peng-icml2024-auxkd}
+Bo~Peng, Zhen Fang, Guangquan Zhang, and Jie Lu.
+\newblock Knowledge distillation with auxiliary variable.
+\newblock In {\em Proceedings of the International Conference on Machine Learning (ICML)}, 2024.
+
+\bibitem{pham-wacv2024-frequency}
+Cuong Pham, Van-Anh, Nguyen Trung, Le~Dinh, and Phung~Gustavo Carneiro.
+\newblock Frequency attention for knowledge distillation.
+\newblock {\em Proceedings of the IEEE Winter Conference on Applications of Computer Vision (WACV)}, pages 2277--2286, 2024.
+
+\bibitem{ridnik-nips2021-imagenet}
+Tal Ridnik, Emanuel~Ben Baruch, Asaf Noy, and Lihi Zelnik.
+\newblock Imagenet-21k pretraining for the masses.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, 2021.
+
+\bibitem{romero-iclr2015-fitnets}
+Adriana Romero, Nicolas Ballas, Samira~Ebrahimi Kahou, Antoine Chassang, Carlo Gatta, and Yoshua Bengio.
+\newblock Fitnets: Hints for thin deep nets.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2015.
+
+\bibitem{sandler-cvpr2018-mobilenetv2}
+Mark Sandler, Andrew~G. Howard, Menglong Zhu, Andrey Zhmoginov, and Liang{-}Chieh Chen.
+\newblock Mobilenetv2: Inverted residuals and linear bottlenecks.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 4510--4520, 2018.
+
+\bibitem{shu-iccv2021-channelkd}
+Changyong Shu, Yifan Liu, Jianfei Gao, Zheng Yan, and Chunhua Shen.
+\newblock Channel-wise knowledge distillation for dense prediction.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 5291--5300, 2021.
+
+\bibitem{simon-nips2014-twostream}
+Karen Simonyan and Andrew Zisserman.
+\newblock Two-stream convolutional networks for action recognition in videos.
+\newblock {\em Advances in Neural Information Processing Systems (NeurIPS)}, 27, 2014.
+
+\bibitem{soomro-arxiv2012-ucf101}
+Khurram Soomro, Amir~Roshan Zamir, and Mubarak Shah.
+\newblock Ucf101: A dataset of 101 human actions classes from videos in the wild.
+\newblock {\em arXiv preprint arXiv:1212.0402}, 2012.
+
+\bibitem{stroud-wacv2020-d3d}
+Jonathan~C. Stroud, David~A. Ross, Chen Sun, Jia Deng, and Rahul Sukthankar.
+\newblock {D3D:} distilled 3d networks for video action recognition.
+\newblock In {\em Proceedings of the IEEE Winter Conference on Applications of Computer Vision (WACV)}, pages 614--623, 2020.
+
+\bibitem{sun-iccv2017-revisit}
+Chen Sun, Abhinav Shrivastava, Saurabh Singh, and Abhinav Gupta.
+\newblock Revisiting unreasonable effectiveness of data in deep learning era.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 843--852, 2017.
+
+\bibitem{sun-cvpr2024-lskd}
+Shangquan Sun, Wenqi Ren, Jingzhi Li, Rui Wang, and Xiaochun Cao.
+\newblock Logit standardization in knowledge distillation.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 15731--15740, 2024.
+
+\bibitem{tong-nips2022-videomae}
+Zhan Tong, Yibing Song, Jue Wang, and Limin Wang.
+\newblock Videomae: Masked autoencoders are data-efficient learners for self-supervised video pre-training.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem{tran-cvpr2015-learning}
+Du~Tran, Lubomir Bourdev, Rob Fergus, Lorenzo Torresani, and Manohar Paluri.
+\newblock Learning spatiotemporal features with 3d convolutional networks.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 4489--4497, 2015.
+
+\bibitem{vaswani-nips2017-attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan Gomez, Lukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, pages 5998--6008, 2017.
+
+\bibitem{wang-aaai2024-gkd}
+Guiqin Wang, Peng Zhao, Yanjiang Shi, Cong Zhao, and Shusen Yang.
+\newblock Generative model-based feature knowledge distillation for action recognition.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)}, pages 15474--15482, 2024.
+
+\bibitem{wang-cvpr2024-crosskd}
+Jiabao Wang, Yuming Chen, Zhaohui Zheng, Xiang Li, Ming-Ming Cheng, and Qibin Hou.
+\newblock Crosskd: Cross-head knowledge distillation for object detection.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 16520--16530, 2024.
+
+\bibitem{wang-eccv2016-action}
+Limin Wang, Yuanjun Xiong, Zhe Wang, Yu~Qiao, Dahua Lin, Xiaoou Tang, and Luc~Van Gool.
+\newblock Temporal segment networks: Towards good practices for deep action recognition.
+\newblock In {\em Proceedings of the European Conference on Computer Vision (ECCV)}, volume 9912, pages 20--36, 2016.
+
+\bibitem{wang-tip2024-dkd}
+Rui Wang, Yixue Hao, Long Hu, Xianzhi Li, Min Chen, Yiming Miao, and Iztok Humar.
+\newblock Efficient crowd counting via dual knowledge distillation.
+\newblock {\em IEEE Transactions on Image Processing (TIP)}, 33:569--583, 2024.
+
+\bibitem{wang-cvpr2025-ncfm}
+Shaobo Wang, Yicun Yang, Zhiyuan Liu, Chenghao Sun, Xuming Hu, Conghui He, and Linfeng Zhang.
+\newblock Dataset distillation with neural characteristic function: {A} minmax perspective.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 25570--25580, 2025.
+
+\bibitem{wang-iclr2019-dataset}
+Tongzhou Wang, Jun-Yan Zhu, Antonio Torralba, and Alexei~A. Efros.
+\newblock Dataset distillation.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2019.
+
+\bibitem{wang-nips2020-fusion}
+Yikai Wang, Wenbing Huang, Fuchun Sun, Tingyang Xu, Yu~Rong, and Junzhou Huang.
+\newblock Deep multimodal fusion by channel exchanging.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+
+\bibitem{wang-cvpr2024-vdsd}
+Ziyu Wang, Yue Xu, Cewu Lu, and Yong{-}Lu Li.
+\newblock Dancing with still images: Video distillation via static-dynamic disentanglement.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 6296--6304, 2024.
+
+\bibitem{wu-eccv2022-tinyvit}
+Kan Wu, Jinnian Zhang, Houwen Peng, Mengchen Liu, Bin Xiao, Jianlong Fu, and Lu~Yuan.
+\newblock Tinyvit: Fast pretraining distillation for small vision transformers.
+\newblock In {\em Proceedings of the European Conference on Computer Vision (ECCV)}, volume 13681, pages 68--85, 2022.
+
+\bibitem{wu-iccv2023-temporal}
+Wenhao Wu, Yuxin Song, Zhun Sun, Jingdong Wang, Chang Xu, and Wanli Ouyang.
+\newblock What can simple arithmetic operations do for temporal modeling?
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 13666--13676, 2023.
+
+\bibitem{wu-tist2023-poly}
+Yanzhao Wu and Ling Liu.
+\newblock Selecting and composing learning rate policies for deep neural networks.
+\newblock {\em ACM Transactions on Intelligent Systems and Technology(tist)}, 14:22--25, 2023.
+
+\bibitem{xie-cvpr2023-dynamickd}
+Yi~Xie, Huaidong Zhang, Xuemiao Xu, Jianqing Zhu, and Shengfeng He.
+\newblock Towards a smaller student: capacity dynamic distillation for efficient image retrieval.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 16006--16015, 2023.
+
+\bibitem{yan-cvpr2022-multiview}
+Shen Yan, Xuehan Xiong, Anurag Arnab, Zhichao Lu, Mi~Zhang, Chen Sun, and Cordelia Schmid.
+\newblock Multiview transformers for video recognition.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 3323--3333, 2022.
+
+\bibitem{yang-cvpr2020-temporal}
+Ceyuan Yang, Yinghao Xu, Jianping Shi, Bo~Dai, and Bolei Zhou.
+\newblock Temporal pyramid network for action recognition.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 591--600, 2020.
+
+\bibitem{yang-tpami2024-sckd}
+Shunzhi Yang, Jinfeng Yang, MengChu Zhou, Zhenhua Huang, Wei~Shi Zheng, Xiong Yang, and Jin Ren.
+\newblock Learning from human educational wisdom: a student-centered knowledge distillation method.
+\newblock {\em IEEE Transactions Pattern Analysis and Machine Intelligence (TPAMI)}, 46(6):4188--4205, 2024.
+
+\bibitem{Yang-iccv2023-unifiedkd}
+Zhendong Yang, Ailing Zeng, Zhe Li, Tianke Zhang, Chun Yuan, and Yu~Li.
+\newblock From knowledge distillation to self-knowledge distillation: A unified approach with normalized loss and customized soft labels.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, pages 17185--17194, 2023.
+
+\bibitem{zagoruyko-bmvc2017-residual}
+Sergey Zagoruyko and Nikos Komodakis.
+\newblock Wide residual networks.
+\newblock In {\em Proceedings of the British Machine Vision Conference (BMVC)}, pages 19--22, 2016.
+
+\bibitem{zhai-cvpr2022-scaling}
+Xiaohua Zhai, Alexander Kolesnikov, Neil Houlsby, and Lucas Beyer.
+\newblock Scaling vision transformers.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 12104--12113, 2022.
+
+\bibitem{zhao-iclr2021-dcwgm}
+Bo~Zhao, Konda~Reddy Mopuri, and Hakan Bilen.
+\newblock Dataset condensation with gradient matching.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2021.
+
+\bibitem{zhao-cvpr2022-dkd}
+Borui Zhao, Quan Cui, Renjie Song, Qiu Yiyu, and Liang Jiajun.
+\newblock Decoupled knowledge distillation.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 11953--11962, 2022.
+
+\bibitem{zhao-arxiv2024-idtd}
+Yinjie Zhao, Heng Zhao, Bihan Wen, Yew{-}Soon Ong, and Joey~Tianyi Zhou.
+\newblock Video set distillation: Information diversification and temporal densification.
+\newblock {\em arXiv preprint}, arXiv:2412.00111, 2024.
+
+\bibitem{zhou-cvpr2016-ldf}
+Bolei Zhou, Aditya Khosla, {\`{A}}gata Lapedriza, Aude Oliva, and Antonio Torralba.
+\newblock Learning deep features for discriminative localization.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 2921--2929, 2016.
+
+\bibitem{zong-iclr2023-kd}
+Martin Zong, Zengyu Qiu, Xinzhu Ma, Kunlin Yang, Chunya Liu, Jun Hou, Shuai Yi, and Wanli Ouyang.
+\newblock Better teacher better student: dynamic prior knowledge for knowledge distillation.
+\newblock In {\em Proceedings of the International Conference on Learning Representations (ICLR)}, 2023.
+
+\end{thebibliography}

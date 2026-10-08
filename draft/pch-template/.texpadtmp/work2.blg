@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: /Users/chenyuan/Documents/postgrad/work1/pch_Work2/work2-draft-pingchenhao-v1.0/.texpadtmp/work2.aux
+The style file: plain.bst
+Database file #1: ../work2.bib
+Warning--I didn't find a database entry for "dai-aaai2025-channelkd"
+You've used 71 entries,
+            2118 wiz_defined-function locations,
+            893 strings with 18154 characters,
+and the built_in function-call counts, 35650 in all, are:
+= -- 3424
+> -- 1986
+< -- 47
++ -- 785
+- -- 710
+* -- 2494
+:= -- 5405
+add.period$ -- 213
+call.type$ -- 71
+change.case$ -- 569
+chr.to.int$ -- 0
+cite$ -- 71
+duplicate$ -- 1415
+empty$ -- 2576
+format.name$ -- 710
+if$ -- 7734
+int.to.chr$ -- 0
+int.to.str$ -- 71
+missing$ -- 70
+newline$ -- 358
+num.names$ -- 142
+pop$ -- 713
+preamble$ -- 1
+purify$ -- 497
+quote$ -- 0
+skip$ -- 1210
+stack$ -- 0
+substring$ -- 2308
+swap$ -- 610
+text.length$ -- 47
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 284
+warning$ -- 0
+while$ -- 285
+width$ -- 73
+write$ -- 771
+(There was 1 warning)

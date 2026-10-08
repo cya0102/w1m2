@@ -1,0 +1,74 @@
+\begin{thebibliography}{10}
+
+\bibitem{tao-aaai2025-channelkd}
+Tao Dai, Yang Lin, Hang Guo, Jinbao Wang, and Zexuan Zhu.
+\newblock {DCSF-KD:} dynamic channel-wise spatial feature knowledge
+  distillation for object detection.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence
+  (AAAI)}, pages 2627--2635, 2025.
+
+\bibitem{geoffrey-arxiv2015-kd}
+Oriol~Vinyals Geoffrey~Hinton and Jeffrey Dean.
+\newblock Distilling the knowledge in a neural network.
+\newblock {\em arXiv preprint}, arXiv:1503.02531, 2015.
+
+\bibitem{kay-arXiv2017-kinetics}
+Will Kay, Joao Carreira, Karen Simonyan, Brian Zhang, Chloe Hillier, Sudheendra
+  Vijayanarasimhan, Fabio Viola, Tim Green, Trevor Back, Paul Natsev, Mustafa
+  Suleyman, and Andrew Zisserman.
+\newblock The kinetics human action video dataset.
+\newblock {\em arXiv preprint arXiv:1705.06950}, 2017.
+
+\bibitem{li-acmmm2025-slakd}
+Ping Li, Chenhao Ping, Wenxiao Wang, and Mingli Song.
+\newblock Sample-level adaptive knowledge distillation for action recognition.
+\newblock {\em Association for Computing Machinery(ACM MM)}, pages 544--552,
+  2025.
+
+\bibitem{li-aaai2023-ctkd}
+Zheng Li, Xiang Li, Lingfeng Yang, Borui Zhao, Renjie Song, Lei Luo, Jun Li,
+  and Jian Yang.
+\newblock Curriculum temperature for knowledge distillation.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence
+  (AAAI)}, pages 1504--1512, 2023.
+
+\bibitem{romero-iclr2015-fitnets}
+Adriana Romero, Nicolas Ballas, Samira~Ebrahimi Kahou, Antoine Chassang, Carlo
+  Gatta, and Yoshua Bengio.
+\newblock Fitnets: Hints for thin deep nets.
+\newblock In {\em Proceedings of the International Conference on Learning
+  Representations (ICLR)}, 2015.
+
+\bibitem{soomro-arxiv2012-ucf101}
+Khurram Soomro, Amir~Roshan Zamir, and Mubarak Shah.
+\newblock Ucf101: A dataset of 101 human actions classes from videos in the
+  wild.
+\newblock {\em arXiv preprint arXiv:1212.0402}, 2012.
+
+\bibitem{wang-aaai2024-gkd}
+Guiqin Wang, Peng Zhao, Yanjiang Shi, Cong Zhao, and Shusen Yang.
+\newblock Generative model-based feature knowledge distillation for action
+  recognition.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial Intelligence
+  (AAAI)}, pages 15474--15482, 2024.
+
+\bibitem{wang-cvpr2024-crosskd}
+Jiabao Wang, Yuming Chen, Zhaohui Zheng, Xiang Li, Ming-Ming Cheng, and Qibin
+  Hou.
+\newblock Crosskd: Cross-head knowledge distillation for object detection.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}, pages 16520--16530, 2024.
+
+\bibitem{wang-tip2024-dkd}
+Rui Wang, Yixue Hao, Long Hu, Xianzhi Li, Min Chen, Yiming Miao, and Iztok
+  Humar.
+\newblock Efficient crowd counting via dual knowledge distillation.
+\newblock {\em IEEE Transactions on Image Processing (TIP)}, 33:569--583, 2024.
+
+\bibitem{zhao-cvpr2022-dkd}
+Borui Zhao, Quan Cui, Renjie Song, Qiu Yiyu, and Liang Jiajun.
+\newblock Decoupled knowledge distillation.
+\newblock In {\em Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition (CVPR)}, pages 11953--11962, 2022.
+
+\end{thebibliography}
